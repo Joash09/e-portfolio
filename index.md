@@ -1,12 +1,19 @@
-## Welcome to GitHub Pages
+## Welcome to my GitHub Page
+
+I am a final year Electrical and Computer Engineering student studying at the University of Cape Town. I am passionate for all things computing and how are changing our lives.
+
 
 You can use the [editor on GitHub](https://github.com/Joash09/joash.github.io/edit/master/index.md) to maintain and preview the content for your website in Markdown files.
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+### Reasearch Interests
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+* FPGA programming
+* Machine Learning
+* Embedded programming
+
+
 
 ```markdown
 Syntax highlighted code block
