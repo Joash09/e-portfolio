@@ -7,6 +7,8 @@ I love installing and tinkering with all sorts of open-source projects ranging f
 
 When I am not in front of a computer, I enjoy giving back to the community with Engineers without Borders South Africa. I especially enjoyed organizing and tutoring at their weekly highschool maths and science tutoring programme. Otherwise I enjoy getting coffee with friends or an occassional outdoor run.  
 
+![SolderingPicture](assets/joash_soldering.jpg)
+
 In a few years I'd like to see myself using cutting edge technology and finding new and exciting techniques to squeeze as much performance out of computers as they evolve to meet our ever increasing needs. 
 
 ### Reasearching Interests
