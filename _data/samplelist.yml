@@ -1,0 +1,6 @@
+docs_list_title: Navigation
+docs:
+        - title: CV
+          url: CV.md
+        - title: Contact
+          url: contact.md
