@@ -1,8 +1,8 @@
-project_list_title: Project
+project_list_title: Github Projects
 projects:
   - title: Python Neural Network
     url: https://github.com/Joash09/studious-telegram.git
   - tile: Android App
     url: https://github.com/Joash09/BlueMelody2Pi.git
-  - title: This e-portfolio
+  - title: This e-Portfolio
     url: https://github.com/Joash09/joash.github.io.git
