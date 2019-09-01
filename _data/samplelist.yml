@@ -1,5 +1,7 @@
 docs_list_title: Navigation
 docs:
+        - title: Home
+          url: https://joash09.github.io/joash.github.io
         - title: CV
           url: assets/CVJoashNaidoo.pdf
         - title: Contact
