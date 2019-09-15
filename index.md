@@ -13,7 +13,7 @@ Did you remember to carry the 1? | Don't touch a hot soldering iron!
 
 In a few years I'd like to see myself using cutting edge technology and finding new and exciting techniques to squeeze as much performance out of computers as they evolve to meet our ever demanding needs. 
 
-### Reasearching Interests
+### Researching Interests
 
 * FPGA programming
 * Machine Learning
