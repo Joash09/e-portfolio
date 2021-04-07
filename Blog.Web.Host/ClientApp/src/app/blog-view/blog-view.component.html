@@ -1,0 +1,11 @@
+<!-- <p>blog-view works!</p> -->
+
+<p *ngIf="!entries"><em>Loading...</em></p>
+
+<div class="container" *ngIf=entries>
+    <div *ngFor="let entry of entries">
+        <h1>{{ entry.title }}</h1>
+        <div [innerHTML]="entry.content"></div>
+        <!-- {{ entry.content }} -->
+    </div>
+</div>

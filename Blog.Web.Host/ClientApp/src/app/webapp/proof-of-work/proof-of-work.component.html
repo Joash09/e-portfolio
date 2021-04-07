@@ -1,0 +1,67 @@
+<p>Here lies a very simple blockchain to illustrate blockchain as a data structure and proof of work concept. 
+    I think the cool thing about this is that it runs entirely in your browser.
+    Typically I would've tried to make the code more performant by compiling it to webassembly or using some GPU acceleration; but that can be for a future project.
+    Check out my blog entry on blockchains to see how I built it. :)
+</p>
+
+
+<h3>Add users on the "network"</h3>
+<form>
+    <div class="form-row">
+        <div class="col-9">
+            <input input="text" class="form-control" placeholder="Add new user name">
+        </div>
+        <div class="col-3">
+            <button class="btn btn-primary" (onClick)="addParticipant()">Add new user</button>
+        </div>
+    </div>
+</form>
+<br>
+<h3>Make New Transaction</h3>
+<p>Choose who is sending what to whom</p>
+<form>
+  <div class="form-row">
+    <div class="col">
+        <label>Sender</label>
+        <select class="custom-select">
+            <option *ngFor="let p of participants" value="p">{{ p }}</option>
+        </select>
+    </div>
+    <div class="col">
+        <label>Receiver</label>
+        <select class="custom-select">
+            <option *ngFor="let p of participants" value="p">{{ p }}</option>
+        </select>
+    </div>
+  </div>
+  <div class="form-row mt-2">
+      <label>Data to be Transferred:</label>
+      <input type="text" class="form-control" placeholder="Type whatever data you want to send" [(ngModel)]="data">
+  </div>
+  <div class="form-row mt-2">
+      <div class="col text-center">
+          <button class="btn btn-primary">Submit Transaction</button>
+      </div>
+  </div>
+</form>
+
+
+<br>
+<div class="row text-center">
+    <div class="col text-center">
+        <button class="btn btn-success">Mine a new block</button>
+    </div>
+</div>
+<p>The hash for this block is:</p>
+
+<!-- Display the chain of blocks here -->
+
+<br>
+<h3>Final Remarks</h3>
+<p>
+    Finally the big leap is understanding that there many "miners" on the network all racing introduce blocks with their own chain of blocks.
+    The longest chain at any given time is considered to be the most accurate.
+    A miner will typically reset his/her chain to the longest one after 6 or blocks have been mined ahead of their own chain. 
+    Therefore if a miner had to introduce a fraudulant block (i.e. one with fraudulant data) they would need to beat all the other miners consistantly for 6 or more blocks.
+    Doing so is crazy unlikely in a network for thousands of nodes.
+</p>

@@ -1,0 +1,28 @@
+/* .col-3 {
+  height: 100%;
+  position: fixed;
+  overflow-x: hidden;
+  padding-top: 20px;
+  border-right: 1px dotted black;
+}
+
+.col-9 {
+  height: 100%;
+  position: fixed;
+  padding-top: 20px;
+} */
+
+.sidenav a {
+  padding: 6px 8px 6px 0px;
+  text-decoration: none;
+  color: black;
+  display: block;
+}
+
+.sidenav a:hover {
+  color:blue;
+}
+
+.sidenav a:active {
+  color: blue;
+}

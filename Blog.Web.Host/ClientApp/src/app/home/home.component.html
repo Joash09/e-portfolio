@@ -1,0 +1,24 @@
+<h1>Hello, world!</h1>
+<p>Welcome to my portfolio website and blog. Really only built this website as an aid for recruitement purposes but thought it wouldn't
+    hurt to document some of my thoughts around various topics. Also love playing around with different open source software.
+    If I can showcase the software as a web app I'll host it here as well. So be sure to check out the <em>Web Apps</em> tab. Hope you have fun poking around.
+</p>
+<p>
+    -J
+</p>
+
+<hr>
+
+<p *ngIf="!blogsInfo"><em>Loading...</em></p>
+
+<div class="container" *ngIf="blogsInfo">
+    <div class="row">
+        <div *ngFor="let blog of blogsInfo" class="card shadow-sm mb-4" style="width: 18em;">
+            <img src="{{'data:image/jpg;base64,' + blog.thumbnail}}" class="card-img-top" height="225">
+            <div class="card-body">
+                <a class="card-title" [routerLink]="['/blog-view', blog.id]">{{ blog.title }}</a>
+                <p class="card-subtitle text-muted">{{ blog.lastModified | date:mediumDate }}</p>
+            </div>
+        </div>
+    </div>
+</div>
