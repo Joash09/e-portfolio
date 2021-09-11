@@ -1,0 +1,23 @@
+version: "3"
+services:
+  
+  web:
+    image: blog-app:latest
+    depends_on:
+      - postgres_db
+    environment:
+      DB_CONNECTION_STRING: "server=localhost;port=5432;database=blogdb;username=postgres;password=mysecretpassword"
+    ports:
+      - "8000:80"
+
+  postgres_db:
+    image: postgres:11
+    ports:
+      - "5432"
+    restart: always
+    volumes:
+      - ./Database//BlogDB.sql:/docker-entrypoint-initdb.d/BlogDB.sql
+    environment:
+      - POSTGRES_DB=blogdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword

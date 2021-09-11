@@ -14,3 +14,13 @@ code {
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
+
+.dark-theme {
+	text-color: #eee;
+	background-color: #121212;
+}
+
+.card-dark {
+	background-color: gray
+}
+

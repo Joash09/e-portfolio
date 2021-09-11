@@ -1,13 +1,18 @@
-<div class="container">
+<div class="container-fluid">
   <div class="row">
-    <div class="col-3">
-    <div class="sidenav">
-      <a [routerLink]="['proof-of-work']" [routerLinkActive]="['link-active']">Proof of Work</a>
-      <a href="#">Embedded Neural Network</a>
-      <a href="#">Facial Recognition</a>
-    </div>
-    </div>
-    <div class="col-9">
+    <nav id="webapp-sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+			<button class="navbar-toggler" data-target="#webapp-siderbar" data-toggle="collapse" type="button"><span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="sidebar-sticky pt-3">
+			<ul class="nav flex-column" [ngClass]="{'text-white': darkMode}">
+				<li class="nav-item"><a [routerLink]="['proof-of-work']" [routerLinkActive]="['link-active']">Proof of Work</a></li>
+				<li class="nav-item"><a [routerLink]="['neural-net']">Embedded Neural Network</a></li>
+                <li class="nav-item"><a [routerLink]="['double-pendulum']">Double Pendulum (WebGL)</a></li>
+				<li class="nav-item"><a [routerLink]="['facial-recognition']">Facial Recognition</a></li>
+			</ul>
+			</div>
+    </nav>
+    <div class="col-md-9 col-lg-10" role="main">
       <router-outlet></router-outlet>
     </div>
   </div>

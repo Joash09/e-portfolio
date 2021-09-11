@@ -8,6 +8,7 @@ namespace Blog.Core
 				public string title { get; set; }
 				public DateTime lastModified { get; set; }
 				public byte[] thumbnail { get; set; }
+				public string thumbnailLink { get; set; }
 				public string content { get; set; }
 
     }

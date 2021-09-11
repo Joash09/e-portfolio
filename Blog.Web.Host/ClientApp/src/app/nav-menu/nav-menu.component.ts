@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { faEnvelope, faRocket } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faRocket, faMoon } from '@fortawesome/free-solid-svg-icons';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { ThemeService } from '../theme-service/theme.service';
 
 @Component({
   selector: 'app-nav-menu',
@@ -12,6 +13,10 @@ export class NavMenuComponent {
   faRocket = faRocket;
   faGithub = faGithub;
   faEnvelope = faEnvelope;
+	faMoon = faMoon;
+
+	constructor(private themeService: ThemeService) {
+	}
 
   collapse() {
     this.isExpanded = false;
@@ -20,4 +25,9 @@ export class NavMenuComponent {
   toggle() {
     this.isExpanded = !this.isExpanded;
   }
+
+	toggleTheme() {
+		this.themeService.toggleTheme();
+		console.log(this.themeService.darkMode);
+	}
 }

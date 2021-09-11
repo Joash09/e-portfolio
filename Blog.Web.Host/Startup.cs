@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -24,7 +25,8 @@ namespace Blog.Web.Host
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-						services.AddDbContext<BlogDbContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+						var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+						services.AddDbContext<BlogDbContext>(options => options.UseNpgsql(connectionString));
 						// services.AddDbContext<BlogDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

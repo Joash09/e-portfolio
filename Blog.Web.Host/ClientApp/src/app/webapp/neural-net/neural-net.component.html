@@ -1,0 +1,105 @@
+<p>I found this <a href="https://fireship.io/lessons/tensorflow-js-quick-start/">tutorial</a> on YouTube and really wanted to re-create it myself. In an effort to make this demo my own, whilst doing something that still requires user input I opted to also recognize handwritten letters! Not much different to the well-known MNIST dataset save some slight tweaking on the model to accomodate 47 classes. Get started by drawing a letter or a number in the box below and let's see if my model can predict it correctly. It is worth mentioning it is all running in your browser!
+</p>
+
+<p>Note: 
+<ul>
+	<li><em>Some information gets lost when scaling the image down before passing it through the neural network. You should see better performance by drawing big and slowly or going over the lines a few times</em></li>
+	<li><em>The model is only approximately 83% accurate. You can find the code to create the model below</em></li>
+</ul>
+<p>
+
+
+<p *ngIf="!model"><em>Loading model...</em></p>
+
+<div *ngIf="model">
+<div class="container text-center">
+	<canvas appDraw id="canvas"></canvas>
+	<div class="row justify-content-center">
+			<div class="btn-group">
+					<button class="btn btn-success" (click)="predict()">Predict Text</button>
+					<button class="btn btn-warning" (click)="canvas.clear();clear()">Clear</button>
+			</div>
+	</div>
+	<br>
+	<div class="row text-center" *ngIf="prediction !== null">
+		<b>I'm guessing you drew a {{ prediction }}</b>
+	</div>
+</div>
+</div>
+
+<hr>
+
+<h3>Code to Create Neural Network</h3>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="im">import</span> numpy <span class="im">as</span> np
+<span class="im">import</span> pandas <span class="im">as</span> pd
+<span class="im">import</span> tensorflow <span class="im">as</span> tf
+<span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="co"># Get Familiar with the input data</span>
+
+temp_data <span class="op">=</span> pd.read_csv(<span class="st">&quot;emnist-bymerge-train.csv&quot;</span>, nrows<span class="op">=</span><span class="dv">20</span>)
+<span class="bu">print</span>(temp_data.head(<span class="dv">5</span>))
+
+train_lbl <span class="op">=</span> temp_data[<span class="st">&#39;24&#39;</span>]
+train_img <span class="op">=</span> temp_data.drop(<span class="st">&#39;24&#39;</span>, axis<span class="op">=</span><span class="dv">1</span>)
+
+<span class="co"># Normalize and shape data</span>
+train_img <span class="op">=</span> train_img <span class="op">/</span> <span class="fl">255.0</span> 
+train_img <span class="op">=</span> train_img.values.reshape(train_img.shape[<span class="dv">0</span>], <span class="dv">28</span>, <span class="dv">28</span>)
+
+<span class="co"># Rotate image to be right-side up</span>
+<span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(train_img)):
+    train_img[i] <span class="op">=</span> np.fliplr(train_img[i])
+    train_img[i] <span class="op">=</span> np.rot90(train_img[i])
+    
+plt.imshow(train_img[<span class="dv">3</span>])
+plt.show()
+<span class="bu">print</span>(train_lbl[<span class="dv">3</span>])</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="co"># Create Model and Compile Model</span>
+<span class="co"># Input layer shape is same as MNIST</span>
+<span class="co"># Some Capital and Lower letters are identical and therefore can be represented by a single </span>
+<span class="co"># output neuron. Therefore only 47 output classes as opposed to 52</span>
+model <span class="op">=</span> tf.keras.Sequential([
+    tf.keras.layers.Flatten(input_shape<span class="op">=</span>(<span class="dv">28</span>, <span class="dv">28</span>)),
+    tf.keras.layers.Dense(<span class="dv">512</span>, activation<span class="op">=</span><span class="st">&#39;sigmoid&#39;</span>),
+    tf.keras.layers.Dense(<span class="dv">128</span>, activation<span class="op">=</span><span class="st">&#39;sigmoid&#39;</span>),
+    tf.keras.layers.Dense(<span class="dv">47</span>, activation<span class="op">=</span><span class="st">&#39;softmax&#39;</span>)
+])
+model.<span class="bu">compile</span>(optimizer<span class="op">=</span><span class="st">&#39;adam&#39;</span>,
+              loss<span class="op">=</span>tf.keras.losses.SparseCategoricalCrossentropy(from_logits<span class="op">=</span><span class="va">True</span>),
+              metrics<span class="op">=</span>[<span class="st">&#39;accuracy&#39;</span>])</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="kw">def</span> preprocess(chunk):
+    
+    <span class="co"># Extract label from image data</span>
+    train_lbl <span class="op">=</span> chunk[<span class="st">&#39;24&#39;</span>]
+    train_img <span class="op">=</span> chunk.drop(<span class="st">&#39;24&#39;</span>, axis<span class="op">=</span><span class="dv">1</span>)
+    
+    <span class="co"># Normalize and shape data</span>
+    train_img <span class="op">=</span> train_img <span class="op">/</span> <span class="fl">255.0</span> 
+    train_img <span class="op">=</span> train_img.values.reshape(train_img.shape[<span class="dv">0</span>], <span class="dv">28</span>, <span class="dv">28</span>)
+    
+    <span class="co"># Rotate image to be right-side up</span>
+    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(train_img)):
+        train_img[i] <span class="op">=</span> np.fliplr(train_img[i])
+        train_img[i] <span class="op">=</span> np.rot90(train_img[i])
+        
+    <span class="cf">return</span> train_img, train_lbl</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="co"># Train Model in chunks</span>
+<span class="cf">for</span> chunk <span class="kw">in</span> pd.read_csv(<span class="st">&quot;emnist-bymerge-train.csv&quot;</span>, chunksize<span class="op">=</span><span class="dv">100000</span>):
+    chunk_img, chunk_lbl <span class="op">=</span> preprocess(chunk)
+    model.fit(chunk_img, chunk_lbl)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="co"># Get Test Data</span>
+test_df <span class="op">=</span> pd.read_csv(<span class="st">&#39;emnist-balanced-test.csv&#39;</span>)
+test_df.head(<span class="dv">5</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="co"># Format Test Data</span>
+test_lbl <span class="op">=</span> test_df[<span class="st">&#39;41&#39;</span>]
+test_img <span class="op">=</span> test_df.drop(<span class="st">&#39;41&#39;</span>, axis<span class="op">=</span><span class="dv">1</span>)
+test_img <span class="op">=</span> test_img <span class="op">/</span> <span class="fl">255.0</span> <span class="co"># Normalize data</span>
+test_img <span class="op">=</span> test_img.values.reshape(test_img.shape[<span class="dv">0</span>], <span class="dv">28</span>, <span class="dv">28</span>, <span class="dv">1</span>)
+<span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(test_img)):
+    test_img[i] <span class="op">=</span> np.fliplr(test_img[i])
+    test_img[i] <span class="op">=</span> np.rot90(test_img[i])</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="co"># Evaluate the Model</span>
+model.evaluate(test_img, test_lbl)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="co"># Save model for Angular App</span>
+<span class="im">import</span> tensorflowjs <span class="im">as</span> tfjs
+tfjs.converters.save_keras_model(model, <span class="st">&quot;./&quot;</span>)</code></pre></div>

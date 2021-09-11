@@ -5,7 +5,8 @@
 <div class="container" *ngIf=entries>
     <div *ngFor="let entry of entries">
         <h1>{{ entry.title }}</h1>
-        <div [innerHTML]="entry.content"></div>
-        <!-- {{ entry.content }} -->
+				<p><fa-icon [icon]="faCamera"></fa-icon> Thumbnail Photo Credit: <a>{{ entry.thumbnailLink }}</a></p>
+				<div [innerHTML]="entry.content"></div>
+				<!-- {{ entry.content }} -->
     </div>
 </div>

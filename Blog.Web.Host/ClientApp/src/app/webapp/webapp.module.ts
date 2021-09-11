@@ -8,12 +8,15 @@ import { RouterModule } from '@angular/router';
 /* Applications in the form of Components */
 import { ProofOfWorkComponent } from './proof-of-work/proof-of-work.component';
 import { WelcomeComponent } from './welcome/welcome.component';
+import { NeuralNetComponent } from './neural-net/neural-net.component';
+import { DrawDirective } from './neural-net/draw.directive';
+import { DoublePendulumComponent } from './double-pendulum/double-pendulum.component';
 
 /* 3rd Party */
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
-  declarations: [ParentComponent, ProofOfWorkComponent, WelcomeComponent],
+  declarations: [ParentComponent, ProofOfWorkComponent, WelcomeComponent, NeuralNetComponent, DrawDirective, DoublePendulumComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -23,7 +26,9 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
         path: 'webapps', component: ParentComponent,
         children: [
           { path: '', component: WelcomeComponent },
-          { path: 'proof-of-work', component: ProofOfWorkComponent}
+          { path: 'proof-of-work', component: ProofOfWorkComponent},
+          { path: 'neural-net', component: NeuralNetComponent},
+          { path: 'double-pendulum', component: DoublePendulumComponent }
         ]
       },
     ])

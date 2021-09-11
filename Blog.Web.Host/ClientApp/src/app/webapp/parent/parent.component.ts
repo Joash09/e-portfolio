@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ThemeService } from '../../theme-service/theme.service';
 
 @Component({
   selector: 'app-parent',
@@ -7,7 +8,13 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ParentComponent implements OnInit {
 
-  constructor() { }
+	darkMode: boolean;
+
+  constructor(private themeService: ThemeService) {
+		themeService.darkModeChange.subscribe((result) => {
+			this.darkMode = result;
+		});
+	}
 
   ngOnInit() {
   }
