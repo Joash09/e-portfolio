@@ -11,12 +11,14 @@ import { WelcomeComponent } from './welcome/welcome.component';
 import { NeuralNetComponent } from './neural-net/neural-net.component';
 import { DrawDirective } from './neural-net/draw.directive';
 import { DoublePendulumComponent } from './double-pendulum/double-pendulum.component';
+import { TuringMachineComponent } from './turing-machine/turing-machine.component';
 
 /* 3rd Party */
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
+
 @NgModule({
-  declarations: [ParentComponent, ProofOfWorkComponent, WelcomeComponent, NeuralNetComponent, DrawDirective, DoublePendulumComponent],
+  declarations: [ParentComponent, ProofOfWorkComponent, WelcomeComponent, NeuralNetComponent, DrawDirective, DoublePendulumComponent, TuringMachineComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -28,7 +30,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
           { path: '', component: WelcomeComponent },
           { path: 'proof-of-work', component: ProofOfWorkComponent},
           { path: 'neural-net', component: NeuralNetComponent},
-          { path: 'double-pendulum', component: DoublePendulumComponent }
+          { path: 'double-pendulum', component: DoublePendulumComponent },
+          { path: 'turing-machine', component: TuringMachineComponent }
         ]
       },
     ])
