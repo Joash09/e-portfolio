@@ -13,7 +13,7 @@ export class TuringMachineComponent implements OnInit {
   Movement = Movement;
   Movements: any[];
 
-  NumStages: number;
+  NumStages: number = 2;
   States: State[] = [{Instructions:[]}];
   StateIndices: number[] = [];
 
@@ -30,9 +30,10 @@ export class TuringMachineComponent implements OnInit {
     for(let i = 0; i < this.NumTapeSymbols; i++) {
       this.Tape.push(Symbol.T);
     }
+    this.drawInstructionTable();
   }
 
-  drawInstructionTable(e: any){
+  drawInstructionTable(e?: any){
     this.States = [];
     this.StateIndices = [];
     
@@ -56,7 +57,7 @@ export class TuringMachineComponent implements OnInit {
     let finalStateIndex = this.NumStages-1;
     let tapeIndex = 0;
 
-    this.OutputTape = JSON.parse(JSON.stringify(this.Tape));
+    this.OutputTape = JSON.parse(JSON.stringify(this.Tape)); // Deep copy
 
     while(currentStateIndex !== finalStateIndex){
 
@@ -98,9 +99,9 @@ export enum Movement {
 
 export interface Instruction {
   CurrentSymbol: Symbol,
-  ChangeSymbol?: Symbol,
-  NextStageIndex?: number,
-  Movement?: Movement
+  ChangeSymbol: Symbol,
+  NextStageIndex: number,
+  Movement: Movement
 }
 
 // Each state has a collection of intructions
