@@ -1,13 +1,12 @@
 <p>I found this <a href="https://fireship.io/lessons/tensorflow-js-quick-start/">tutorial</a> on YouTube and really wanted to re-create it myself. In an effort to make this demo my own, whilst doing something that still requires user input I opted to also recognize handwritten letters! Not much different to the well-known MNIST dataset save some slight tweaking on the model to accomodate 47 classes. Get started by drawing a letter or a number in the box below and let's see if my model can predict it correctly. It is worth mentioning it is all running in your browser!
 </p>
 
-<p>Note: 
-<ul>
-	<li><em>Some information gets lost when scaling the image down before passing it through the neural network. You should see better performance by drawing big and slowly or going over the lines a few times</em></li>
-	<li><em>The model is only approximately 83% accurate. You can find the code to create the model below</em></li>
-</ul>
-<p>
-
+<div class="alert alert-warning">
+    Some information gets lost when scaling the image down before passing it through the neural network. You should see better performance by drawing big and slowly or going over the lines a few times
+</div>
+<div class="alert alert-primary">
+    The model is only approximately 83% accurate. You can find the code to create the model below
+</div>
 
 <p *ngIf="!model"><em>Loading model...</em></p>
 
