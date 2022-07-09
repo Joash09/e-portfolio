@@ -1,0 +1,61 @@
+<!-- <div class="container-fluid">
+     <div class="row">
+     <nav id="webapp-sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+     <div class="sidebar-sticky pt-3">
+     <ul class="nav flex-column" [ngClass]="{'text-white': darkMode}">
+     <li class="nav-item"><a [routerLink]="['turing-machine']" [routerLinkActive]="['link-active']">Turing Machine</a></li>
+     <li class="nav-item"><a [routerLink]="['proof-of-work']" [routerLinkActive]="['link-active']">Proof of Work</a></li>
+     <li class="nav-item"><a [routerLink]="['neural-net']">Embedded Neural Network</a></li>
+     <li class="nav-item"><a [routerLink]="['double-pendulum']">Double Pendulum</a></li>
+     <li class="nav-item"><a [routerLink]="['facial-recognition']">Facial Recognition</a></li>
+     </ul>
+     </div>
+     </nav>
+     <div class="col-md-9 col-lg-10" role="main">
+     <router-outlet></router-outlet>
+     </div>
+     </div>
+     </div> -->
+<div class="row">
+    <div class="col-12 col-md-3">
+        <div class="d-flex flex-column align-items-stretch">
+            <a [routerLink]="['webapps']" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom" [ngClass]="{ 'text-white bg-dark': isDark }">
+                <span class="fs-5 fw-semibold">Web Apps</span>
+            </a>
+            <div class="list-group list-group-flush border-bottom scrollarea">
+                <a [routerLink]="['proof-of-work']" [routerLinkActive]="['link-active']" class="list-group-item list-group-item-action py-3 lh-sm" [ngClass]="{ 'text-white bg-dark': isDark }">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">Proof of Work</strong>
+                        <small class="text-muted">2021</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Trying to understand from 1st principles how the first iterations of blockchains work</div>
+                </a>
+                <a [routerLink]="['neural-net']" class="list-group-item list-group-item-action py-3 lh-sm" [ngClass]="{ 'text-white bg-dark': isDark }">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">Neural Network</strong>
+                        <small class="text-muted">2021</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Handwriting Recognition: The Hello World into deep learning</div>
+                </a>
+                <a [routerLink]="['turing-machine']" [routerLinkActive]="['link-active']" class="list-group-item list-group-item-action py-3 lh-sm" aria-current="true" [ngClass]="{ 'text-white bg-dark': isDark }">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">Turing Machine</strong>
+                        <small class="text-muted">2021</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Create programs by manipulating symbols on a long tape</div>
+                </a>
+                <a [routerLink]="['double-pendulum']" class="list-group-item list-group-item-action py-3 lh-sm" [ngClass]="{ 'text-white bg-dark': isDark }">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">Double Pendulum</strong>
+                        <small class="text-muted">2021</small>
+                    </div>
+                    <div class="col-10 mb-1 small">Messing around with a physics engine</div>
+                </a>
+            </div>
+
+        </div>
+    </div>
+    <div class="col-12 col-md-9">
+        <router-outlet></router-outlet>
+    </div>
+</div>

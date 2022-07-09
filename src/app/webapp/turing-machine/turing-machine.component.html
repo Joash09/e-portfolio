@@ -1,0 +1,90 @@
+<p>
+    It feels long overdue to look at, quite possibly, the most fundamental aspect of computing: the Turing machine. 
+    I thought it would be interesting to create an interactive Turing Machine to begin the journey of understanding why computers are capable of executing seemingly any algorithm.
+    I would recommend watching a short <a href="https://www.youtube.com/watch?v=dNRDvLACg5Q">clip</a> by Computerphile to understand what exactly I am trying to accomplish before poking around.
+</p>
+<div class="alert alert-warning">
+    Be warned! When "programming" this machine you could code yourself into a infinite loop. It is best to just close the web page if that happens. 
+</div>
+<hr>
+
+<label>Select number of states in turing machine. This includes the final state which is reserved as the halting state</label>
+<select class="form-select" [(ngModel)]="NumStages" (change)="drawInstructionTable($event)">
+    <option *ngFor="let i of [2, 3, 4, 5]">{{ i }} </option>
+</select>
+
+<label>Define the behaviour of the states given input symbol. The final state is reserved as the halting state</label>
+<table class="table" [ngClass]="{ 'bg-dark text-white': isDark }">
+    <thead>
+        <tr>
+            <th>State Index</th>
+            <th>Instructions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let state of States; let i = index">
+            <td >{{ i }}</td>
+            <td>
+                <table class="table" [ngClass]="{ 'bg-dark text-white': isDark }">
+                    <thead>
+                        <tr>
+                            <th>Input Symbol</th>
+                            <th>Change Symbol</th>
+                            <th>Next Stage Index</th>
+                            <th>Movement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let instruction of state.Instructions">
+                            <td>{{ Symbol[instruction.CurrentSymbol] }}</td>
+                            <td>
+                                <select class="form-select" [(ngModel)]="instruction.ChangeSymbol" name="instructionChangeSymbol" ngDefaultControl>
+                                    <option *ngFor="let symbol of Symbols" [value]="symbol">{{ Symbol[symbol] }}</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" [(ngModel)]="instruction.NextStageIndex" name="instructionNextStateindex" ngDefaultControl>
+                                    <option *ngFor="let index of StateIndices">{{ index }}</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" [(ngModel)]="instruction.Movement" name="instructionMovement" ngDefaultControl>
+                                    <option *ngFor="let movement of Movements" [value]="movement">{{ Movement[movement] }}</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<label>Define the input tape symbols. The turing machine will act on these symbols. True (T) and False (F) can be used to represesent binary digits whilst Blank (B) spaces are represented by B.</label>
+<div class="row">
+    <div class="form-group">
+        <select *ngFor="let i of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]; let index = index"
+                class="m-2"
+            [(ngModel)]="Tape[index]" data-width="fit">
+            <option *ngFor="let symbol of Symbols" [value]="symbol">{{ Symbol[symbol] }}</option>
+        </select>
+    </div>
+</div>
+
+<br>
+<div class="text-center">
+    <button type="button" class="btn btn-success" (click)="executeTuringMachine()">Execute the Turing Machine</button>
+</div>
+
+<br>
+<label>The output tape is as follows:</label>
+<div class="row">
+    <div class="form-group">
+            <select *ngFor="let i of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]; let index = index"
+                class="m-2" [(ngModel)]="OutputTape[index]" data-width="fit">
+                <option *ngFor="let symbol of Symbols" [value]="symbol">{{ Symbol[symbol] }}</option>
+            </select>
+    </div>
+</div>
+
+

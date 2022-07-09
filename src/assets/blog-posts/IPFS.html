@@ -1,0 +1,30 @@
+<p>IPFS hopes to build a decentralized web. This web will not have to rely on the central servers provided by large companies but instead the web will be shared between the millions of devices that use the internet everyday.</p>
+<h2 id="primer-into-how-ipfs-works">Primer into how IPFS works</h2>
+<p>Storing all the web's content in a decentralised manner will require a fancy and efficient data structure. Whenever the word &quot;decentralised&quot; is mentioned everyone thinks blockchain, and understandablly so. However dentralisation can be achieved without the blockchain and it is useful to think of the blockchain as just a secure data strucutre. IPFS uses a Merkel Directed Acyclic Graph (DAG). This is actually a commonly used data strucutre and is ideal for storing file structures. The cryptocurrency IOTA also uses a DAG and hopefully will be something I investigate in the future.</p>
+<h2 id="getting-started-with-ipfs">Getting Started with IPFS</h2>
+<p>Install the IPFS command line interface and run:</p>
+<pre><code>ipfs init</code></pre>
+<p>This will create a .ipfs directory in your home directory which will store all the keys. We can now take our device online by running:</p>
+<pre><code>ipfs daemon</code></pre>
+<p>The daemon runs in its own instance of the terminal and will stop when terminal is closed. To test we are connected to the merkle DAG we can print the content of this quick start text file by running the following in another terminal instance:</p>
+<pre><code>ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/quick-start</code></pre>
+<p>Now we are used to interacting with the web through the browser. Unfortunately the browser only knows how to speak HTTP, centralised protocol. If we want to access content on the IPFS network we need the browser to speak IPFS. Right now, this can be acheived by downloading the IPFS Companion plugin but perhaps in the future this will supported natively.</p>
+<h2 id="creating-a-single-page-website">Creating a single page website</h2>
+<p>A single page website (or any other single file content such as an image, song or video) is really easy to host on the IPFS network. It is just a matter of uploading the files. There is a command line way of doing the following but I found it is more intuitive to use the webui provided by the IPFS daemon. To access the UI just navigate to https://localhost:5001 in the browser. Once you have uploaded your file you can get a &quot;share&quot; link which anyone can use to navigate your resource. Remeber they would need IPFS running as well as the IPFS Companion plugin for the browser.</p>
+<h2 id="creating-a-more-complicated-static-websites">Creating a more complicated static websites</h2>
+<p>Single page static websites aren't exactly super exciting. What is exciting is to see if IPFS could support more widely adopted web frameworks like Angular. I am still going to try keep it simple by having the Angular website still just serving static content. No backend just yet. Following steps can be found from this <a href="https://medium.com/gochain/how-to-deploy-an-unstoppable-angular-app-to-ipfs-c2dabb52e517">tutorial</a>.</p>
+<p>Basic startup:</p>
+<pre><code>ng new IPFS-Webapp --skip-install # Create new project
+yarn install # Use yarn to manage dependancies 
+npm start # Start the project to see if it works</code></pre>
+<p>Remember IPFS and HTTP are different protocols and hence the URL structure is different. As such the base URL of the Angular project (defined base tag in src/index.html) must be changes to:</p>
+<pre><code>&lt;script&gt;
+     document.write(&#39;&lt;base href=&quot;&#39;+window.location.pathname+&#39;&quot;/&gt;&#39;);
+&lt;/script&gt;</code></pre>
+<p>That is it! We can now build a publishable version of the project by running:</p>
+<pre><code>ng build --prod</code></pre>
+<p>The publishable version of the Angular project can be found in the 'dist' folder. It is this folder which will upload to the IPFS using either the web UI or command line.</p>
+<pre><code>ipfs add -r dist/IPFS-Webapp</code></pre>
+<p>Done! We can get the sharable link and view the project with a browser that has IPFS Companion installed.</p>
+<h2 id="next-steps">Next Steps</h2>
+<p>Now with a basic static page up it is worth looking at how IPFS and RESTful APIs interact. Other technologies include OrbitDB, a decentralized database. The question remains if we can host truly dynamic and smart web apps on a decentralized network.</p>

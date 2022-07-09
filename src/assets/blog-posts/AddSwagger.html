@@ -1,0 +1,27 @@
+<p>The basic architecture for the current web is as follows:</p>
+<ol style="list-style-type: decimal">
+<li>A client (user) downloads a front side app to their browser. Typically this client code is limited to displaying what the user sees on screen and performing any tasks that do need access to company servers.</li>
+<li>Sensitive user and company data is typically stored on the companies servers. This of course is for control and security reasons.</li>
+<li>Naturally the client will need to access and add to this data at some point. To do access this data the client must communicate to the backend through HTTP requests</li>
+</ol>
+<p>Companies therefore must write backend applications which must know how to handle the requests the client makes. The front end must interface with the company backend through an Application Specific Interface (API). Obviously the developers building the backend should document and test this API so the front end developers know what methods to call and how to use them. This is where SwaggerUI is useful. It provides a simple interface to view the API, see what objects each method takes and returns. It also offers the ability to test the methods themselves by allowing you to execute the methods without having to write any front end code.</p>
+<h2 id="add-swagger-to-asp.net-core-project">Add Swagger to ASP.NET Core Project</h2>
+<ol style="list-style-type: decimal">
+<li><p>Create new project</p>
+<pre><code>dotnet new webapp -o MySwaggerProject</code></pre></li>
+<li><p>Add required packages</p>
+<pre><code>dotnet add package Swashbuckle.AspNetCore</code></pre></li>
+<li><p>Include library in Startup.cs</p>
+<pre><code>using Microsoft.OpenApi.Models;</code></pre></li>
+<li><p>Add to services in Startup.cs</p>
+<pre><code>services.AddSwaggerGen();</code></pre></li>
+<li><p>Configure app</p>
+<pre><code>app.UseSwagger();
+app.UseSwaggerUI(c =&gt; {
+c.SwaggerEndpoint(&quot;/swagger/v1/swagger.json&quot;, &quot;My API V2&quot;);
+});</code></pre></li>
+<li><p>Done! Just run the app</p>
+<pre><code>dotnet run</code></pre></li>
+</ol>
+<p>Finally you can access Swagger UI from the following URL</p>
+<pre><code>https://&lt;app url&gt;/swagger</code></pre>

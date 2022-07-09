@@ -1,0 +1,27 @@
+<p>At the beginning of the year I bought an Arty 35T FPGA board. After some initial projects</p>
+<p>I wanted to run through an example of using my FPGA as a processor to run Linux. Basically convert the FPGA board into something more equivalent to a Raspberry Pi. I think this exercise will be a good refresher into FPGA design and the design flow with Vivado. I found this tutorial to work through. It is very thorough and easy to follow. The purpose of this post isn’t to restate the steps given but just for me to expand on specific concepts with FPGAs.</p>
+<p>https://projects.digilentinc.com/whitney-knitter/hello-microblaze-on-arty-a7-70d9e1</p>
+<p>Firstly note FPGAs are not microprocessors. Instead they are made up of interconnected logic gates which can then be configured into any digital logic circuit you desire. Why do we care for digital logic design? For one we can design circuits which perform computation at lightning speed, much faster than software. It is apparent a chip dedicated to a specific task will be much faster than software running on a processor that also has to deal with other overhead.</p>
+<p>But also remember, a processor is also just a digital circuit (granted it is a highly complex digital circuit) it can be programmed on a FPGA. The designs for such processors are readily available and are referred to as “soft cores.” FPGAs are large and can typically house a soft processor with room left over for other designs too. This offers the best of both worlds as the designer can use the softcore for the general purpose tasks as well as have dedicated hardware for when speed really matters.</p>
+<p>The softcore design I’ll be using is called “MicroBlaze.” This software is capable of running a custom PetaLinux distribution or running standalone C/C++ applications directly.</p>
+<ol style="list-style-type: decimal">
+<li>Create a new project with the correct board files</li>
+<li>First we start with a Block Design in Vivado. For simplicity logic circuits can be represented as blocks with inputs and outputs. There are many logic designs for many different purposes. The designers of these designs share their work as IP Cores (i.e. blocks that we can include in our projects).</li>
+<li>Drag a MicroBlaze IP Core onto the block design</li>
+<li>The most basic digital logic block is an individual logic gate. We can add such blocks using the Utility Vector Logic cores. It goes without saying we probably don’t want to create a whole design using only these. ;)</li>
+<li>Ad the UART1655 IP core which will handle the serial interface between the host computer and the FPGA board</li>
+<li>We can also add a GPIO controller allowing the softcore processor (“Microblaze”) to interface with the GPIO of the board.</li>
+<li>Validate the design</li>
+<li>Create an HDL wrapper. An HDL wrapper as I understand it is a VHDL (or Verilog) top level entity to the whole design. It is the block where we define the inputs and outputs will physically map to the IO pins of the FPGA.</li>
+<li>The actual mapping between these defined pins and the actual pins is done using a constraints file. Board manufacturers typically provide one for convenience. We just need to make sure the names of our inputs and outputs match what is defined in the constraints file.</li>
+<li>Let me now briefly introduce the FPGA design flow. After we have a written up a design, we must run the synthesis tool which converts the design to a gate-level logic (i.e. can this design be realised by the using logic gates). The next step is implementation which optimizes the synthesized design and does place and route. Finally we have bitstream generation. The bitstream is the binary file that will be loaded to configure the FPGA.</li>
+<li>It is important to note that when we add a softcore to our hardware design, that we would therefore also need to write software for that softcore. This is why Xilinx Vivado (the tool I primarily use for now) includes an SDK to write C/C++ code for the FPGA.</li>
+<li>Before we can begin writing software for the Microblaze, we must export the hardware definition (specification) files, so that the software we write knows how to run on the hardware we designed. These files would obviously include the bitstream from our hardware design. The hardware specification also includes a description of the hardware such as which IP cores are present and the register information for those cores.<br />
+</li>
+<li>The hardware specification files will exist as a single folder in our application. We can now add an “Application Project” to the project</li>
+<li>There are two types of Application Projects, namely; Standalone and Linux. There is also an option for an RTOS application but that is beyond the scope for now.</li>
+<li>Standalone: Applications that run completely on their own without Linux operating system</li>
+<li>Linux: Processor runs with a Linux operating system (e.g. Petalinux) and application runs within the OS</li>
+<li>When creating the Application Project there is also an option to generate the Board Support Package which will be built from our hardware specification. The BSP is the lowest layer of the software stack and includes the drivers required to interact with the hardware.</li>
+<li>You will need a serial terminal to interact with your device.</li>
+</ol>

@@ -1,0 +1,11 @@
+<div class="d-flex flex-column min-vh-100" [ngClass]="{ 'bs-white': !isDark, 'bg-dark': isDark, 'text-white': isDark }">
+  <app-nav-menu></app-nav-menu>
+  <div class="container">
+    <router-outlet></router-outlet>
+  </div>
+  <footer class="footer mt-auto py-3" [ngClass]="{ 'bg-light': !isDark, 'bg-dark': isDark }">
+    <div class="container">
+      <span class="text-muted">Made with ☕ from scratch using <fa-icon [icon]="faAngular"></fa-icon> Angular + <fa-icon [icon]="faBootstrap"></fa-icon> Bootstrap</span>
+    </div>
+  </footer>
+</div>

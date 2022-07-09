@@ -1,0 +1,14 @@
+<p>Often when exploring various open source projects, you often see near the end of the README that there is a Docker image provided. Compiling software yourself is often a lot of fun but you often run into problems such as not having the correct dependencies or forgetting important steps because you don’t want to read the documentation too carefully. Sometimes you don’t want this hassel and if you do, the developers graciously provide a pre-built docker image with all the required dependencies so you can just run the tool.</p>
+<p>This is great but then how do I actually use this container? This is the question I found myself asking after wanting to try out GHDL, a compiler and simulation tool for VHDL. At first I thought you could run the container iteratively and this would give you terminal access into the container but remember these containers are barebones. They don’t have your favourite text editors and/or other tools included. And more importantly storage within the container is not persistent, meaning that once the container stops all the data within is also lost.</p>
+<p>With that in mind, here I document a development flow with a GHDL docker container using Docker mounts. Obviously we can get started by first pulling the docker image we want to work with. This step is actually optional since Docker will automatically pull the image if it can’t find it locally when running the following commands later.</p>
+<p>docker pull ghdl/ghdl</p>
+<p>docker run -it --rm -v $PWD:/work -w /work ghdl/ghdl {command} {arguments}</p>
+<p>
+    <ul>
+        <li>-it : Run the container interactively. This will allow us to see the output of the container</li>
+        <li>--rm : Remove the container once it is done running</li>
+        <li>-v : Mount the current working directory to a folder “/work” in the container</li>
+        <li>-w : Change the working directory of the container to “/work” Remember this is where we copied all our files to</li>
+    </ul>
+</p>
+<p>After the container has run the command, the resulting output files in the same directory as your mounted volume.</p>

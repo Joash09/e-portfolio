@@ -1,0 +1,31 @@
+<div class="row">
+    <div class="p-3 mb-4 rounded-3" [ngClass]="{ 'bg-light': !isDark, 'bg-dark': isDark, 'text-white': isDark }">
+        <div class="container-fluid py-1">
+            <div class="row">
+                <div class="col-md-10">
+                    <h1 class="display-5 fw-bold"><i>&lt;h1&gt;Hello World&lt;/h1&gt;</i></h1>
+                    <p class="col-md-9 fs-4">Welcome to my little corner of the web; a place where I document some of my adventures with different topics and technologies.
+                    Be sure to poke around in the web apps tab to see some small projects I thought were interesting. - Joash</p>
+                </div>
+                <div class="col-md-2">
+                    <img class="profile-pic" src="assets/profile3.jpg"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="album py-2">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+        <div *ngFor="let blog of posts" class="col-md-3 d-flex align-items-stretch" >
+            <div class="card shadow-sm mb-4">
+                <img src="assets/blog-thumbnails/{{blog.thumbnail}}" class="card-img-top" height="225" width="100%">
+                <div class="card-body">
+                    <a class="card-title" [routerLink]="['/blog-view', blog.id]">{{ blog.title }}</a>
+                    <p class="card-subtitle text-muted">{{ blog.date }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,48 @@
+<header>
+  <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-dark border-bottom box-shadow mb-3">
+    <div class="container">
+      <a class="navbar-brand text-white" [routerLink]="['/']"><fa-icon [icon]="faRocket" size="lg"></fa-icon> Just Another Portfolio</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target=".navbar-collapse"
+        aria-label="Toggle navigation"
+        [attr.aria-expanded]="isExpanded"
+        (click)="toggleExpanded()"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div
+        class="navbar-collapse collapse d-sm-inline-flex justify-content-end"
+        [ngClass]="{ show: isExpanded }"
+      >
+        <ul class="navbar-nav flex-grow">
+          <li
+            class="nav-item"
+            [routerLinkActive]="['link-active']"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <a class="nav-link text-white" [routerLink]="['/']">Home</a>
+          </li>
+          <li class="nav-item" [routerLinkActive]="['link-active']">
+            <a class="nav-link text-white" [routerLink]="['/webapps']"
+            >Web Apps</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="https://github.com/Joash09" target="_blank"
+            ><fa-icon [icon]="faGithub" size="lg"></fa-icon></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="mailto:joash@ids.co.za"
+            ><fa-icon [icon]="faEnvelope" size="lg"></fa-icon></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="javascript:;" data-toggle="tooltip" data-placement="bottom" title="Toggle Dark Mode" (click)="toggleTheme()"
+            ><fa-icon [icon]="faMoon" size="lg"></fa-icon></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>
