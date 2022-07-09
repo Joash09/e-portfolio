@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { DrawDirective } from './draw.directive';
 
-import * as tf from '@tensorflow/tfjs';
+import { tidy, browser } from '@tensorflow/tfjs';
+import { loadLayersModel } from '@tensorflow/tfjs-layers';
 // import '@tensorflow/tfjs-backend-wasm'; // Links to a precompiled wasm file
 
 import { mapping } from './mapping';
@@ -24,7 +25,7 @@ export class NeuralNetComponent implements OnInit {
   ngOnInit() {
 
     // tf.setBackend('wasm').then(() => main());
-    tf.loadLayersModel('../../../assets/model.json').then(model => {
+    loadLayersModel('../../../assets/model.json').then(model => {
       this.model = model as any;
       console.log('Model loaded');
     });
@@ -33,9 +34,9 @@ export class NeuralNetComponent implements OnInit {
 
   predict() {
     const canvasImg = this.canvas.getImageData();
-    const pred = tf.tidy(() => {
+    const pred = tidy(() => {
 
-      let tmpImage = tf.browser.fromPixels(canvasImg);
+      let tmpImage = browser.fromPixels(canvasImg);
       tmpImage = tmpImage.mean(2);
       tmpImage = tmpImage.reshape([1, 28, 28]);
       // tmpImage = tf.cast(tmpImage, 'float32')
