@@ -6,6 +6,8 @@ import { Injectable } from '@angular/core';
 export class BlogsService {
 
   BlogPosts: BlogPost[] = [
+    { id: 'Chroot', title: 'Chroot Jail and systemd-nspawn containers', date: '11-07-2022', thumbnail: 'jail.jpg' },
+    { id: 'DeploySite', title: 'How I deployed this website', date: '11-07-2022', thumbnail: 'website.jpg' },
     { id: 'Bonds', title: 'What I learnt about Bonds', date: '05-04-2021', thumbnail: 'bond.jpg' },
     { id: 'Fallacies', title: 'Identifying my biases and fallacies', date: '10-04-2021', thumbnail: 'thinking.jpg' },
     { id: 'Docker', title: 'Docker for development', date: '09-09-2021', thumbnail: 'docker.jpg' },

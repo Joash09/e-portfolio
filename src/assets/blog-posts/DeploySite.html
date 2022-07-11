@@ -1,0 +1,120 @@
+<p>
+When I set out to create this website, I wanted to have be able to include webapps within the portfolio itself. I incorrectly thought that this meant I couldn&rsquo;t serve it as a static website, because these webapps pages are not just static HTML pages. However, in the end these webapps are just javascript files be downloaded to your browser and hence very much could be served from a simple storage cloud instance.
+</p>
+
+<p>
+Here are the steps:
+</p>
+
+<ol class="org-ol">
+<li>Create a static website storage instance on <a href="https:docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-portal">Azure</a>
+<ul class="org-ul">
+<li>The storage instance is made up of &ldquo;blobs.&rdquo; Azure automatically creates a web blob and configure it to be accessable with a &ldquo;ugly&rdquo; default URL.</li>
+<li>We will add a custom domain later</li>
+</ul></li>
+<li>Before deploying, it is a good idea to ensure the size of the initial webapp bundle is not huge. Obviously the bigger it is; the longer the user has to wait for your website to load.
+<ul class="org-ul">
+<li>We will use <a href="https://github.com/https://github.com/webpack-contrib/webpack-bundle-analyzer">webpack-bundle-analyzer</a></li>
+<li>When creating an Angular project, the CLI tool will typically create a &ldquo;production&rdquo; configuration automatically</li>
+<li>Within the production configuration, we can set the budgets of our Angular app
+<ul class="org-ul">
+<li><p>
+Budgets will warn you if your app is too big and if you will need to analyze
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json">     "configurations": {
+       "production": {
+         "budgets": [
+           {
+             "type": "initial",
+             "maximumWarning": "500kb",
+             "maximumError": "1mb"
+           },
+           {
+             "type": "anyComponentStyle",
+             "maximumWarning": "2kb",
+             "maximumError": "4kb"
+           }
+         ],
+       }
+     }
+</pre>
+</div></li>
+</ul></li>
+
+<li><p>
+webpack-bundle-analyzer is a package we can install using npm or yarn (I used yarn)
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">npm i -D webpack-bundle-analyzer <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">or</span>
+yarn add -D webpack-bundle-analyzer
+</pre>
+</div></li>
+
+<li>Build the project and generate a stats file</li>
+<li><p>
+The file is included in the dist directory
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">ng build --configuration=production --stats-json
+</pre>
+</div></li>
+
+<li><p>
+In the package.json add the following in the scripts entry. Ensure your path to the stats.json file is correct
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json">       "scripts": {
+          "analyze": "webpack-bundle-analyzer dist/static-portfolio/stats.json",
+       }
+</pre>
+</div></li>
+</ul></li>
+
+<li>Buy a custom domain
+<ul class="org-ul">
+<li>I used <a href="https:https://domains.google.com/">Google Domains</a></li>
+<li>Worth checking out different domain providers before commiting. Ensure you are comparing renewal fees, as well as the initial fee</li>
+<li>Once you have purchased your domain, you will have access to DNS settings for this domain</li>
+<li>By having access to these DNS settings and the ability to create DNS records, we can prove that we do in fact own this domain</li>
+</ul></li>
+<li>Once you have your custom domain, it needs to be linked to your storage account
+<ul class="org-ul">
+<li>Visit the custom domain settings in the Azure storage instance</li>
+<li>Create new entry</li>
+<li>Azure will prompt you to create DNS record with our domain provider (e.g. Google Domains), with a randomly generated text string
+<ul class="org-ul">
+<li>DNS record:
+<ul class="org-ul">
+<li>Type: TXT</li>
+<li>Name: www</li>
+<li>TTL: default</li>
+<li>Value: generated string</li>
+</ul></li>
+<li>Azure will verify you have control over your domain (takes up to 48 hours)</li>
+</ul></li>
+</ul></li>
+<li>Create CNAME record for www subdomain [<a href="https:https://docs.microsoft.com/en-us/azure/static-web-apps/custom-domain-external">1</a>]
+<ul class="org-ul">
+<li>Create a new DNS record of type CNAME and with the value of the &ldquo;ugly&rdquo; default URL for your storage account</li>
+<li>After creating and the settings have propogated through the network, your website is now live</li>
+<li>Remember the www when entering the URL</li>
+</ul></li>
+<li>Create redirect for APEX domain
+<ul class="org-ul">
+<li>I don&rsquo;t often type www when I want to visit a website</li>
+<li>I want to offer vistors to my site the same convience</li>
+<li>Typically this is done by adding a ALIAS type DNS record with our DNS provider, but Google Domains does not offer this</li>
+<li>Instead go to the &ldquo;Website&rdquo; settings in your Google domains portal</li>
+<li>Create forwarding rule
+<ul class="org-ul">
+<li>From: &lt;website&gt;.com</li>
+<li>To: www.&lt;website&gt;.com</li>
+<li>Redirect type: Permanent</li>
+</ul></li>
+</ul></li>
+</ol>

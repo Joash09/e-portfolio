@@ -1,0 +1,110 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgeb73761">1. Motivation</a></li>
+<li><a href="#orge301454">2. Chroot</a>
+<ul>
+<li><a href="#orga988313">2.1. Steps to create chroot environment</a></li>
+</ul>
+</li>
+<li><a href="#org69688f1">3. Chroot on steriods</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgeb73761" class="outline-2">
+<h2 id="orgeb73761"><span class="section-number-2">1.</span> Motivation</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Gentoo is a Linux distribution where you do everything. So far this year I have been using it to learn more about the Linux ecosystem the hard way. A good example of this is when I wanted to install Steam and NVIDIA drivers without interferring with my main system. The NVIDIA drivers were installed as kernel modules against a second kernel and is a story for another time. Having an isolated Steam installation is what&rsquo;s next. The first option is to use containers with Docker, however Steam does not provide an official Docker image. Second option is something like Flatpak, but that would come with needing to rebuild my kernel to support Flatpak. Also using Flatpak only for Steam so it seemed unnecessary. Thus we arrive at chroot: a builtin minimal tool which provides the level of isolation I want without the overhead of a full container.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orge301454" class="outline-2">
+<h2 id="orge301454"><span class="section-number-2">2.</span> Chroot</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Almost all developers use containers within their development and production workflows. It is well understood containers provide an isolated environment with is own file strucutre and its own operating system. What&rsquo;s lesser known is if we wanted to just isolate the file directory we can do so without Docker. The chroot environment still uses the same operating system as the host system but cannot access files outside its own file directory.
+</p>
+</div>
+
+<div id="outline-container-orga988313" class="outline-3">
+<h3 id="orga988313"><span class="section-number-3">2.1.</span> Steps to create chroot environment</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+The steps to create a chroot environment are outlined on <a href="https:https://wiki.gentoo.org/wiki/Chroot">Gentoo Wiki</a>, so I don&rsquo;t want to copy paste it here. However, at a high level they are:
+</p>
+<ol class="org-ol">
+<li>Create directory for chroot environment</li>
+<li>Unpack system files. There are tools you can install for certain distributions to do this for you like arch-root (Arch) or debootstrap (Debian-based). For Gentoo you extracting the stage3 tar</li>
+<li>Mount system directories (e.g. /dev, /proc, /run etc.)</li>
+<li><p>
+Enter environment
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">chroot /mnt/mychroot /bin/bash
+env-update &amp;&amp; <span style="color: #29838D;">.</span> /etc/profile
+<span style="color: #29838D;">export</span> <span style="color: #842879;">PS1</span>=<span style="color: #4F894C;">"(chroot) </span><span style="color: #97365B;">$</span><span style="color: #842879;">PS1</span><span style="color: #4F894C;">"</span>
+</pre>
+</div></li>
+<li>&ldquo;exit&rdquo; to exit</li>
+<li>Should remember to unmount system directories</li>
+</ol>
+
+<p>
+Mounting and unmounting the system directories is the most tedious process and one can create a script to do this automatically. However
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org69688f1" class="outline-2">
+<h2 id="org69688f1"><span class="section-number-2">3.</span> Chroot on steriods</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Most Linux tinkers have heard of systemd. It is the init system widely used Linux distro like Canonical&rsquo;s Ubuntu. As the name suggests the init system is the first program the kernel loads. The init system is responsible for managing all the services and processes started by the user however systemd also offers other tools including system logging (journalctl) and as we will discuss now systemd-nspawn.
+</p>
+
+<p>
+Systemd-nspawn actually offers lightweight containers for you. Unlike the chroot jail, processes run within the nspawn container are actually isolated from the main system (i.e. PID 1 in container is different to PID 1 on the host and yes, you can have a separate init system within the nspawn container). I was drawn to nspawn because it handles the process of (un)mounting the required directories for you. It also offers additional proctection in this regard as the container cannot change the /proc or /sys directories and mount private /dev and /run directories not accessible from outside the container.
+</p>
+
+<p>
+The were a few additional things I needed to take note of when using nspawn for running Steam. To display applications from a container, I would need to install xhost which would allow local connections to the Xorg display server on the host. Similarly with pulse server (for audio), I needed to link the host pulse server instance to the container. There was also a huge bunch of /dev (device) files which needed to be linked for NVIDIA to work. Finally I also had to bind the directory with all my steam games.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">xhost +local: <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">allow local connections (i.e. from the container)</span>
+
+systemd-nspawn <span style="color: #4F894C;">\</span>
+    --setenv=<span style="color: #842879;">DISPLAY</span>=:0 <span style="color: #4F894C;">\</span>
+    --setenv=<span style="color: #842879;">PULSE_SERVER</span>=unix:/run/user/host/pulse/native <span style="color: #4F894C;">\</span>
+
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">gentoo thing for installing packages</span>
+    --bind /var/db/repos/gentoo/ <span style="color: #4F894C;">\</span>
+
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">NVIDIA devices</span>
+    --bind=/dev/dri/ <span style="color: #4F894C;">\</span>
+    --bind=/dev/shm/ <span style="color: #4F894C;">\</span>
+    --bind=/dev/nvidia0 <span style="color: #4F894C;">\</span>
+    --bind=/dev/nvidiactl <span style="color: #4F894C;">\</span>
+    --bind=/dev/nvidia-modeset <span style="color: #4F894C;">\</span>
+    --bind=/dev/snd/ <span style="color: #4F894C;">\</span>
+
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">For sound link to host pulseaudio</span>
+    --bind=/run/user/1000/pulse/:/run/user/host/pulse <span style="color: #4F894C;">\</span>
+
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">where steam games located</span>
+    --bind=/mnt/MyStorage/ <span style="color: #4F894C;">\</span>
+
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">chroot directory</span>
+    -D /usr/local/steam64/ <span style="color: #4F894C;">\</span>
+
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">user to login as (must belong to video and audio group)</span>
+    -u steam
+</pre>
+</div>
+</div>
+</div>
