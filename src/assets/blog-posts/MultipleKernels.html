@@ -1,0 +1,92 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgf13719e">1. Basic Kernel Upgrade</a></li>
+<li><a href="#orga79ac58">2. Why a 2nd configuration for NVIDIA drivers</a></li>
+<li><a href="#orgeeafde2">3. Creating a 2nd kernel configuration</a></li>
+<li><a href="#org91d31a7">4. Notes on managing a second kernel configuration</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgf13719e" class="outline-2">
+<h2 id="orgf13719e"><span class="section-number-2">1.</span> Basic Kernel Upgrade</h2>
+<div class="outline-text-2" id="text-1">
+<div class="org-src-container">
+<pre class="src src-bash">
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Following 2 steps are specific to Gentoo</span>
+eselect kernel list
+<span style="color: #9A7500;">sudo</span> eselect kernel set <span style="color: #97365B; font-weight: bold;">2</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">creates symbolic link from source folder to /usr/src/linux</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Alternatively, you can create your symbolic manually</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">ln</span><span style="color: #8b94a5;"> -sf /usr/src/linux-new-version /usr/src/linux</span>
+
+<span style="color: #9A7500;">cd</span> /usr/src/linux
+<span style="color: #9A7500;">cp</span> /usr/src/linux-old-version/.config /usr/src/linux <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">copy old kernel config to new source</span>
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> olddefconfig <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">recreate config with defaults for new kernel features</span>
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> -j7
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> modules_install
+<span style="color: #9A7500;">sudo</span> mount /dev/sda1 /boot <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">mount boot partition</span>
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> install
+
+<span style="color: #9A7500;">sudo</span> grub-mkconfig -o /boot/grub/grub.cfg <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">update grub2 bootloader</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">if you have some 3rd party firmware (e.g. rtl8188eu WIFI drivers, in my case), remember to install them now</span>
+<span style="color: #9A7500;">cd</span> /path/to/drivers
+<span style="color: #9A7500;">make</span>
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> install
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga79ac58" class="outline-2">
+<h2 id="orga79ac58"><span class="section-number-2">2.</span> Why a 2nd configuration for NVIDIA drivers</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+NVIDIA drivers are proprietary. They are built into the kernel but instead will be loaded as a kernel module at start up. (Loadable modules is a feature that must be configured) The kernel interacts with driver modules through an Application Binary Interface. However when upgrading the kernel, new kernel configurations may change the ABI, meaning NVIDIA will need to update their drivers accordingly. The community can&rsquo;t do it since NVIDIA drivers are (again) proprietary software. As a result, it may be worth keeping a second kernel in case the NVIDIA drivers stop working with the current kernel version. Alternatively, you could not update the kernel if it will break the NVIDIA drivers and wait until NVIDIA updates their drivers. I decided to have 2 configurations, because nothing worthwhile came easy.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgeeafde2" class="outline-2">
+<h2 id="orgeeafde2"><span class="section-number-2">3.</span> Creating a 2nd kernel configuration</h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">cd</span> /usr/src
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">cp</span> -r /usr/src/linux-current-version /usr/src/linux-your-extension
+
+eselect kernel list <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">You should be able to see kernel with extension</span>
+<span style="color: #9A7500;">sudo</span> eselect kernel set <span style="color: #97365B; font-weight: bold;">2</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">set symbolic link</span>
+
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> menuconfig  <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">you should set an extension to this kernel. See General setup -&gt; Local version - append to kernel release</span>
+</pre>
+</div>
+
+<p>
+The actual kernel configuration to support NVIDIA drivers is well documented on Gentoo&rsquo;s documentation. I just wanted to record how to create a second kernel configuration up and running as it wasn&rsquo;t immediately apparent to me.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org91d31a7" class="outline-2">
+<h2 id="org91d31a7"><span class="section-number-2">4.</span> Notes on managing a second kernel configuration</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+In my system, almost all packages are built from source, unlike the more commonly installing prebuilt binaries. Certain software packages are built against the current kernel which the package manager finds in /usr/src/linux directory. The NVIDIA drivers are a primary example of this. A upgrade flow, that works for me is as follows:
+</p>
+
+<ol class="org-ol">
+<li>Ensure my main kernel is selected before upgrading (i.e. the symbolic link to /usr/src/linux points to non-nvidia kernel version)</li>
+<li>Upgrade the OS packages</li>
+<li>Reboot with main kernel (booting with NVIDIA kernel will cause Xorg to complain when starting display server)</li>
+<li><p>
+Select nvidia kernel and rebuild NVIDIA drivers
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">sudo</span> emerge --ask @module-rebuild <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">specific to Gentoo and its portage package manager</span>
+</pre>
+</div></li>
+</ol>
+</div>
+</div>
