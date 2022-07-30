@@ -1,18 +1,46 @@
-<p>
-When I set out to create this website, I wanted to have be able to include webapps within the portfolio itself. I incorrectly thought that this meant I couldn&rsquo;t serve it as a static website, because these webapps pages are not just static HTML pages. However, in the end these webapps are just javascript files be downloaded to your browser and hence very much could be served from a simple storage cloud instance.
-</p>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org26f29ca">1. Motivation</a></li>
+<li><a href="#org8cc6cd7">2. Create Azure Resource</a></li>
+<li><a href="#orga7f9c50">3. Ensure Web app is packaged well</a></li>
+<li><a href="#orgca865ba">4. Uploading project to Azure resource</a></li>
+<li><a href="#orgdcb2278">5. Set up Domain</a></li>
+<li><a href="#org44c505f">6. Link Domain to Azure resource</a></li>
+</ul>
+</div>
+</div>
 
+<div id="outline-container-org26f29ca" class="outline-2">
+<h2 id="org26f29ca"><span class="section-number-2">1.</span> Motivation</h2>
+<div class="outline-text-2" id="text-1">
 <p>
-Here are the steps:
+When I set out to create this website, I wanted to have be able to include webapps within the portfolio itself. I incorrectly thought that this meant I couldn&rsquo;t serve it as a static website, because these webapps pages are not just static HTML pages. However, in the end these webapps are just javascript files which are downloaded to your browser and hence could very much be served from a simple storage cloud instance. Here are the steps:
 </p>
+</div>
+</div>
 
-<ol class="org-ol">
-<li>Create a static website storage instance on <a href="https:docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-portal">Azure</a>
+<div id="outline-container-org8cc6cd7" class="outline-2">
+<h2 id="org8cc6cd7"><span class="section-number-2">2.</span> Create Azure Resource</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Create a static website storage instance on <a href="https:docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-portal">Azure</a>
+</p>
 <ul class="org-ul">
 <li>The storage instance is made up of &ldquo;blobs.&rdquo; Azure automatically creates a web blob and configure it to be accessable with a &ldquo;ugly&rdquo; default URL.</li>
+<li>You can set the storage account with CI integration if you link your project repository to Azure. Alternatively, you can manually deploy the project with Azure Copy command line <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">tool</a>.</li>
 <li>We will add a custom domain later</li>
-</ul></li>
-<li>Before deploying, it is a good idea to ensure the size of the initial webapp bundle is not huge. Obviously the bigger it is; the longer the user has to wait for your website to load.
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orga7f9c50" class="outline-2">
+<h2 id="orga7f9c50"><span class="section-number-2">3.</span> Ensure Web app is packaged well</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Before deploying, it is a good idea to ensure the size of the initial webapp bundle is not huge. Obviously the bigger it is; the longer the user has to wait for your website to load.
+</p>
 <ul class="org-ul">
 <li>We will use <a href="https://github.com/https://github.com/webpack-contrib/webpack-bundle-analyzer">webpack-bundle-analyzer</a></li>
 <li>When creating an Angular project, the CLI tool will typically create a &ldquo;production&rdquo; configuration automatically</li>
@@ -73,15 +101,57 @@ In the package.json add the following in the scripts entry. Ensure your path to 
        }
 </pre>
 </div></li>
-</ul></li>
+</ul>
+</div>
+</div>
 
-<li>Buy a custom domain
+<div id="outline-container-orgca865ba" class="outline-2">
+<h2 id="orgca865ba"><span class="section-number-2">4.</span> Uploading project to Azure resource</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+If you created your Azure resource with CI, this step is unnecessary. To deploy you would just push to your master/main branch. If manually deploying:
+</p>
+<ol class="org-ol">
+<li>Install Azure Copy command line <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">tool</a>. Simply run from the extracted tar</li>
+<li>Generate shared access token to resource. <a href="https://docs.microsoft.com/en-us/azure/cognitive-services/translator/document-translation/create-sas-tokens?tabs=Containers">See Documentation</a></li>
+<li><p>
+Remove current files
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">/path/to/az_copy/./az_copy remove <span style="color: #4F894C;">'&lt;access token&gt;'</span> --recursive=true
+</pre>
+</div></li>
+<li><p>
+Build project and upload
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">ng build --configuration=production --aot <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">project files found in /dist folder</span>
+/path/to/az_copy/./az_copy copy <span style="color: #4F894C;">'path/to/project/dist/*'</span> <span style="color: #4F894C;">'&lt;access token&gt;'</span> --recursive=true <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">notice star to upload all the project files</span>
+</pre>
+</div></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgdcb2278" class="outline-2">
+<h2 id="orgdcb2278"><span class="section-number-2">5.</span> Set up Domain</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Buy a custom domain
+</p>
 <ul class="org-ul">
 <li>I used <a href="https:https://domains.google.com/">Google Domains</a></li>
 <li>Worth checking out different domain providers before commiting. Ensure you are comparing renewal fees, as well as the initial fee</li>
 <li>Once you have purchased your domain, you will have access to DNS settings for this domain</li>
 <li>By having access to these DNS settings and the ability to create DNS records, we can prove that we do in fact own this domain</li>
-</ul></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org44c505f" class="outline-2">
+<h2 id="org44c505f"><span class="section-number-2">6.</span> Link Domain to Azure resource</h2>
+<div class="outline-text-2" id="text-6">
+<ol class="org-ol">
 <li>Once you have your custom domain, it needs to be linked to your storage account
 <ul class="org-ul">
 <li>Visit the custom domain settings in the Azure storage instance</li>
@@ -118,3 +188,5 @@ In the package.json add the following in the scripts entry. Ensure your path to 
 </ul></li>
 </ul></li>
 </ol>
+</div>
+</div>
