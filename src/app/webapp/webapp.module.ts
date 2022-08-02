@@ -13,10 +13,12 @@ import { NeuralNetComponent } from './neural-net/neural-net.component';
 import { DrawDirective } from './neural-net/draw.directive';
 import { DoublePendulumComponent } from './double-pendulum/double-pendulum.component';
 import { TuringMachineComponent } from './turing-machine/turing-machine.component';
+import { JispyComponent } from './jispy/jispy.component';
 
 const routes: Routes = [{
     path: 'webapps', component: ParentComponent, children: [
       { path: '', component: WelcomeComponent },
+      { path: 'jispy', component: JispyComponent },
       { path: 'proof-of-work', component: ProofOfWorkComponent},
       { path: 'neural-net', component: NeuralNetComponent},
       { path: 'double-pendulum', component: DoublePendulumComponent },
@@ -31,7 +33,8 @@ const routes: Routes = [{
     NeuralNetComponent,
     DrawDirective,
     DoublePendulumComponent,
-    TuringMachineComponent
+    TuringMachineComponent,
+    JispyComponent
   ],
   imports: [
     CommonModule,
