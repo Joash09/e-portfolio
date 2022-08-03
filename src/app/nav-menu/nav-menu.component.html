@@ -38,8 +38,9 @@
             ><fa-icon [icon]="faEnvelope" size="lg"></fa-icon></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-white" href="javascript:;" data-toggle="tooltip" data-placement="bottom" title="Toggle Dark Mode" (click)="toggleTheme()"
-            ><fa-icon [icon]="faMoon" size="lg"></fa-icon></a>
+            <a class="nav-link text-white" href="javascript:;" data-toggle="tooltip" data-placement="bottom" title="Toggle Dark Mode" (click)="toggleTheme()">
+              <fa-icon [icon]="isDark ? faSun : faMoon" size="lg"></fa-icon>
+            </a>
           </li>
         </ul>
       </div>
