@@ -2,7 +2,132 @@
     Apart from showcasing my efforts, running C code in the browser was an excellent chance to experiment with Webassemly.
 I documented the process here if you would like to find out more.</p>
 
-<label for="output">Output</label>
+<div class="alert alert-warning">
+    If there is no output on the output console (i.e. version number), please refresh &lt;F5&gt; the page.
+</div>
+
+<label for="output">Output Console</label>
 <textarea class="form-control mb-2 bg-dark text-white" id="output" rows="8"></textarea>
 <label for="input">Type your input here (Hit "Enter" to evaluate)</label>
-<textarea class="form-control" id="input" rows="2"></textarea>
+<input type="text" class="form-control mb-2" id="input">
+
+<h3>What is this?</h3>
+<p>
+Firstly, what is Lisp?
+Lisp is simple yet powerful family of programming languages. There are two main concepts which make up the language: expressions and lists.
+</p>
+
+<h5>S-Expressions</h5>
+<p>
+    We mainly use S-Expressions which are simply expressions which we expect the interpreter to evaluate.
+    Expressions are expressed denoted by parenthesis. For example "()" is an empty expression.
+    The structure of an expression follows Polish notation and is in the form (&lt;operator&gt; &lt;list of operands&gt;).
+    For instance 2+6 is expressed as (+ 2 6)
+</p>
+
+<p>
+    Expressions can be nested.
+    For instance (2 * 4) + 6 - 2 is expressed as (- (+ (* 2 4) 6) 2)
+    This is confusing at first, but becomes far more intutive over time as it does not allow for any ambiguitiy regarding the order of operations.
+</p>
+
+<h5>Q-Expressions</h5>
+<p>
+    Another powerful feature not found in other mainstream languages is quoted expressions.
+    These expressions are not evaluated but just treated as data.
+    It is then possible to later evaluate the data as if it were code, hence bluring the difference between data and code.
+    We can create q-expressions with curly braces e.g. {{ '{ 1 2 3 4 }'}}
+    Alternatively using the list function. (list 1 2 3 4)
+    If we want to evaluate a q-expression: (eval {{ '{+ 2 3}' }})
+</p>
+
+<h5>Variables</h5>
+<p>
+    Variables are a common feature of any programming language as is also implemented here.
+    The variables you can define are immutable: meaning they don't change state over time.
+    This is a limitation as can't perform imperative programming however they are still useful in functional programming.
+    You can declare a variable x with value of 2 as such:
+    def {{ '{x}' }} 2
+</p>
+
+<h5>Functions</h5>
+<p>
+    Functional programmers say this is all you need to create a model of computation...
+    At its core, functions are define using lambda functions (i.e. functions without a name). We can then use the def keyword to assign a name to the function which can be called later.
+    {{ 'def { func_name } (lambda {&lt;args list&gt;} {&lt;body&gt;})' }}
+    For example {{ 'def { square } (lambda { x } {* x x})'  }} defines a square function and can be called as (square 2)
+</p>
+
+<h5>Still to come</h5>
+<p>
+    As it stands, Jispy is not fully complete. I will be adding conditionals (if else statements) and support for strings.
+</p>
+
+<h3>Detailed list of builtin functions</h3>
+<table class="table" [ngClass]="{ 'bg-dark text-white': isDark }">
+    <thead>
+        <tr>
+            <th scope="col">Function</th>
+            <th scope="col">Description</th>
+            <th scope="col">Examples</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>+, -, *, /, ^</td>
+            <td>Mathematical functions</td>
+            <td>
+                (+ 2 3) <br>
+                (- 6 3) <br>
+                (* 4 8) <br>
+                (/ 8 4) <br>
+                (^ 2 8) <br>
+            </td>
+        </tr>
+        <tr>
+            <td>list</td>
+            <td>Create List of Q-Expressions</td>
+            <td>
+                (list 1 2 3 4) <br>
+                (list + 2 3)
+            </td>
+        </tr>
+        <tr>
+            <td>eval</td>
+            <td>Evaluate Q-Expression as S-Expression</td>
+            <td>
+                {{  '(eval {+ 2 3})' }} <br>
+                (eval (list + 2 3))
+            </td>
+        </tr>
+        <tr>
+            <td>head</td>
+            <td>Return first element of Q-Expression</td>
+            <td>
+                {{ '(head { 1 2 3 })' }}<br>
+                {{ '(head (list 1 2 3))' }}
+            </td>
+        </tr>
+        <tr>
+            <td>tail</td>
+            <td>Return last element of Q-Expression</td>
+            <td>
+                {{  '(tail { 1 2 3 })' }}<br>
+                (tail (list 1 2 3))
+            </td>
+        </tr>
+        <tr>
+            <td>def</td>
+            <td>Assign variable name to number, Q-expression or lambda function</td>
+            <td>
+                {{ '(def {x} 4)' }}<br>
+                {{ '(def {cube} (lambda {x} (* x x x)))' }}
+            </td>
+        </tr>
+        <tr>
+            <td>lambda</td>
+            <td>Create anonymous function</td>
+            <td>See "def" example above</td>
+        </tr>
+    </tbody>
+</table>
