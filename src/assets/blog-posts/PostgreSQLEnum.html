@@ -1,0 +1,240 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="blog-view/PostgreSQLEnum#org53e125c">1. Motivation</a></li>
+<li><a href="blog-view/PostgreSQLEnum#org442859d">2. Steps</a></li>
+<li><a href="blog-view/PostgreSQLEnum#orgcfec3e4">3. Migrating exisiting enums to PG enums</a>
+<ul>
+<li><a href="blog-view/PostgreSQLEnum#orgf5ef218">3.1. Adding enum type</a></li>
+<li><a href="blog-view/PostgreSQLEnum#org20508b7">3.2. Renaming enum value</a></li>
+<li><a href="blog-view/PostgreSQLEnum#orgdcfafb5">3.3. Removing Enum Value</a></li>
+</ul>
+</li>
+<li><a href="#orgeecc301">4. Resources</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org53e125c" class="outline-2">
+<h2 id="org53e125c"><span class="section-number-2">1.</span> Motivation</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Enums are a useful abstraction for creating a collection of named values. If the data you want to represent belongs to a predefined set, then better to store it has an integer than a string value representing the entire name. Similarly for databases. where an enum in a database relation is represented by a column of a integer type. It would then be left up to the developer to map an enum name (a string) to its corresponding integer value when querying data. Tools like ORM&rsquo;s make this process easier by doing the conversion for us but there are limitations. For instance when I wanted to query records with only partial enum string values. To overcome this, the database designer can create a second table mapping the names to the values of a enum and has foreign key constraint with any table that uses this enum. Then when querying, the developer can then include a join statement and query the enum&rsquo;s name by the joined column. With the benefit of hindsight, this is the better solution even when compared to the alternative of using PostgresSQL enums, which I will demonstrate here.
+</p>
+
+<p>
+PostgresSQL enums offer the &ldquo;best of both worlds.&rdquo; The enum is stored as a integer within the tables but the enums are registered as types within the database. This is the reason I stumbled across PSQL enums, as I wanted the benefits of representing by enum as an integer but still being able to query based off the name (string) of the enum. The query checked if a substring existed in the enum column and it checked across multiple other columns of type string. It is for this reason, I couldn&rsquo;t just cast by string to enum value and query the database. At the time, I thought an &ldquo;enum&rdquo; table was a bit &ldquo;clunky&rdquo; so I solved the problem with psql enums, however I would go creating the second table route if I had to do it over. I have kept the steps to do so here for posterity.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org442859d" class="outline-2">
+<h2 id="org442859d"><span class="section-number-2">2.</span> Steps</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Microsoft&rsquo;s <a href="https://docs.microsoft.com/en-us/ef/core/">EntityFramework Core</a> is a open source object relational mapper (ORM) which provides a easy way to create and interact with database structures from code. <a href="https://www.npgsql.org/">NPGSQL</a> contains a provider for EF Core to interact with PostgresSQL databases. Npgsql also supports creating and interacting with PostgresSQL enums.
+</p>
+
+<ol class="org-ol">
+<li>To begin, ensure required Npgsql packages are in your dotnet project.</li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-bash">dotnet package add Npgsql.EntityFrameworkCore.PostgreSQL
+</pre>
+</div>
+<ol class="org-ol">
+<li><p>
+Create an entity which uses an enum
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">namespace</span> <span style="color: #97365B;">MyApp</span>.<span style="color: #842879;">Core</span> <span style="color: #3B6EA8;">{</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">Entity</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">int</span> <span style="color: #842879;">Id</span> <span style="color: #4F894C;">{</span> get; set; <span style="color: #4F894C;">}</span>
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">Color</span> <span style="color: #842879;">FavouriteColour</span> <span style="color: #4F894C;">{</span> get; set; <span style="color: #4F894C;">}</span>
+    <span style="color: #97365B;">}</span>
+    <span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">enum</span> <span style="color: #9A7500;">Colour</span> <span style="color: #97365B;">{</span>
+        <span style="color: #842879;">Red</span>,
+        <span style="color: #842879;">Blue</span>,
+        <span style="color: #842879;">Yellow</span>
+    <span style="color: #97365B;">}</span>
+
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div></li>
+<li>Add to DB context
+<ul class="org-ul">
+<li>Register the enum with DB context (i.e. let postgresql know about it)</li>
+<li>Register enum with NPGSQL (i.e. let the ORM know about it)</li>
+</ul></li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #97365B;">System</span>.<span style="color: #97365B;">Collections</span>.<span style="color: #842879;">Generic</span>;
+<span style="color: #9A7500;">using</span> <span style="color: #97365B;">Microsoft</span>.<span style="color: #842879;">EntityFrameworkCore</span>;
+<span style="color: #9A7500;">using</span> <span style="color: #97365B;">MyApp</span>.<span style="color: #842879;">Core</span>;
+
+<span style="color: #9A7500;">namespace</span> <span style="color: #97365B;">MyApp</span>.<span style="color: #842879;">Application</span>
+<span style="color: #3B6EA8;">{</span>
+    <span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">MyAppDbContext</span> : DbContext
+    <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">DbSet</span><span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">Entity</span><span style="color: #4F894C;">&gt;</span> <span style="color: #842879;">Entities</span> <span style="color: #4F894C;">{</span> get; set; <span style="color: #4F894C;">}</span>
+
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Need to let the Npgsql library know about mapped enums</span>
+        <span style="color: #3B6EA8;">static</span> MyAppDbContext<span style="color: #4F894C;">()</span> <span style="color: #4F894C;">{</span>
+            <span style="color: #97365B;">NpgsqlConnection</span>.<span style="color: #97365B;">GlobalTypeMapper</span>.MapEnum<span style="color: #842879;">&lt;</span><span style="color: #9A7500;">Colour</span><span style="color: #842879;">&gt;()</span>;
+        <span style="color: #4F894C;">}</span>
+
+        <span style="color: #3B6EA8;">protected</span> override <span style="color: #9A7500;">void</span> <span style="color: #29838D;">OnConfiguring</span><span style="color: #4F894C;">(</span><span style="color: #9A7500;">DbContextOptionsBuilder</span> <span style="color: #842879;">optionsBuilder</span><span style="color: #4F894C;">)</span>
+            =&gt; <span style="color: #97365B;">optionsBuilder</span>.UseNpgsql<span style="color: #4F894C;">(</span><span style="color: #4F894C;">"Host=my_host;Database=my_db;Username=my_user;Password=my_pw"</span><span style="color: #4F894C;">)</span>;
+
+
+        <span style="color: #3B6EA8;">protected</span> override <span style="color: #9A7500;">void</span> <span style="color: #29838D;">OnModelCreating</span><span style="color: #4F894C;">(</span><span style="color: #9A7500;">ModelBuilder</span> <span style="color: #842879;">modelBuilder</span><span style="color: #4F894C;">)</span> <span style="color: #4F894C;">{</span>
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Let PSQL Database know to use database enum</span>
+            <span style="color: #97365B;">modelBuilder</span>.HasPostgresEnum<span style="color: #842879;">&lt;</span><span style="color: #9A7500;">Colour</span><span style="color: #842879;">&gt;()</span>;
+        <span style="color: #4F894C;">}</span>
+
+    <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+
+</pre>
+</div>
+<ol class="org-ol">
+<li><p>
+Add migration and update database
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">dotnet ef migrations add <span style="color: #4F894C;">"Add_entity_with_enum"</span>
+dotnet ef database update
+</pre>
+</div></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgcfec3e4" class="outline-2">
+<h2 id="orgcfec3e4"><span class="section-number-2">3.</span> Migrating exisiting enums to PG enums</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+What happens if your database already has enums represented as integers and want to convert. (Think if you really want to do this&#x2026;😆) Still follow steps 3, 4 and create database migration. However, depending on the type of alteration you want to make, edit your migration as follows:
+</p>
+</div>
+
+<div id="outline-container-orgf5ef218" class="outline-3">
+<h3 id="orgf5ef218"><span class="section-number-3">3.1.</span> Adding enum type</h3>
+<div class="outline-text-3" id="text-3-1">
+<div class="org-src-container">
+<pre class="src src-java">
+
+<span style="color: #3B6EA8;">protected</span> override <span style="color: #9A7500;">void</span> <span style="color: #29838D;">Up</span><span style="color: #3B6EA8;">(</span><span style="color: #9A7500;">MigrationBuilder</span> <span style="color: #842879;">migrationBuilder</span><span style="color: #3B6EA8;">)</span> <span style="color: #3B6EA8;">{</span>
+
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Added by migrations tool</span>
+            <span style="color: #97365B;">migrationBuilder</span>.AlterDatabase<span style="color: #97365B;">()</span>
+                .Annotation<span style="color: #97365B;">(</span><span style="color: #4F894C;">"Npgsql:Enum:colour"</span>, <span style="color: #4F894C;">"red,blue,yellow"</span><span style="color: #97365B;">)</span>;
+
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">You must add this</span>
+            <span style="color: #97365B;">migrationBuilder</span>.Sql<span style="color: #97365B;">(</span>@<span style="color: #9A7500;">"</span>
+ALTER TABLE <span style="color: #4F894C;">""</span>Entities<span style="color: #4F894C;">""</span>
+ALTER COLUMN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span>
+SET DATA TYPE colour USING CASE
+WHEN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> = <span style="color: #97365B; font-weight: bold;">0</span>  THEN <span style="color: #9A7500;">'</span>red<span style="color: #9A7500;">'</span>::colour
+WHEN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> = <span style="color: #97365B; font-weight: bold;">1</span>  THEN <span style="color: #9A7500;">'</span>blue<span style="color: #9A7500;">'</span>::colour
+WHEN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> = <span style="color: #97365B; font-weight: bold;">2</span>  THEN <span style="color: #9A7500;">'</span>yellow<span style="color: #9A7500;">'</span>::colour
+ELSE <span style="color: #9A7500;">'</span>red<span style="color: #9A7500;">'</span>::colour END;<span style="color: #9A7500;">"</span><span style="color: #4F894C;">);</span>
+
+<span style="color: #99324B; font-weight: bold;">}</span>
+
+        <span style="color: #3B6EA8;">protected</span> override <span style="color: #9A7500;">void</span> <span style="color: #29838D;">Down</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">MigrationBuilder</span> <span style="color: #842879;">migrationBuilder</span><span style="color: #97365B;">)</span>
+        <span style="color: #97365B;">{</span>
+
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">You must add this before removing enum type</span>
+            <span style="color: #97365B;">migrationBuilder</span>.Sql<span style="color: #4F894C;">(</span>@<span style="color: #9A7500;">"</span>
+ALTER TABLE <span style="color: #4F894C;">""</span>Entities<span style="color: #4F894C;">""</span>
+ALTER COLUMN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span>
+SET DATA TYPE integer USING CASE
+WHEN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> = <span style="color: #9A7500;">'</span>red<span style="color: #9A7500;">'</span>::colour THEN <span style="color: #97365B; font-weight: bold;">0</span>
+WHEN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> = <span style="color: #9A7500;">'</span>blue<span style="color: #9A7500;">'</span>::colour THEN <span style="color: #97365B; font-weight: bold;">1</span>
+WHEN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> = <span style="color: #9A7500;">'</span>yellow<span style="color: #9A7500;">'</span>::colour THEN <span style="color: #97365B; font-weight: bold;">2</span>
+ELSE <span style="color: #97365B; font-weight: bold;">0</span> END;<span style="color: #9A7500;">"</span><span style="color: #4F894C;">);</span>
+
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Automatically added by migration tool (removing enum type)</span>
+            <span style="color: #97365B;">migrationBuilder</span>.AlterDatabase<span style="color: #842879;">()</span>
+                .OldAnnotation<span style="color: #842879;">(</span><span style="color: #4F894C;">"Npgsql:Enum:colour"</span>, <span style="color: #4F894C;">"red,blue,yellow"</span><span style="color: #842879;">)</span>;
+        <span style="color: #99324B; font-weight: bold;">}</span>
+
+
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org20508b7" class="outline-3">
+<h3 id="org20508b7"><span class="section-number-3">3.2.</span> Renaming enum value</h3>
+<div class="outline-text-3" id="text-3-2">
+<div class="org-src-container">
+<pre class="src src-java">
+        <span style="color: #3B6EA8;">protected</span> override <span style="color: #9A7500;">void</span> <span style="color: #29838D;">Up</span><span style="color: #3B6EA8;">(</span><span style="color: #9A7500;">MigrationBuilder</span> <span style="color: #842879;">migrationBuilder</span><span style="color: #3B6EA8;">)</span>
+        <span style="color: #3B6EA8;">{</span>
+            <span style="color: #97365B;">migrationBuilder</span>.Sql<span style="color: #97365B;">(</span>@<span style="color: #9A7500;">"</span>
+ALTER TYPE colour RENAME VALUE <span style="color: #9A7500;">'</span>blue<span style="color: #9A7500;">'</span> TO <span style="color: #9A7500;">'</span>violet<span style="color: #9A7500;">'</span>;
+<span style="color: #97365B;">)</span>;
+        <span style="color: #3B6EA8;">}</span>
+
+        <span style="color: #3B6EA8;">protected</span> override <span style="color: #9A7500;">void</span> <span style="color: #29838D;">Down</span><span style="color: #3B6EA8;">(</span><span style="color: #9A7500;">MigrationBuilder</span> <span style="color: #842879;">migrationBuilder</span><span style="color: #3B6EA8;">)</span>
+        <span style="color: #3B6EA8;">{</span>
+            <span style="color: #97365B;">migrationBuilder</span>.Sql<span style="color: #97365B;">(</span>@<span style="color: #9A7500;">"</span>
+ALTER TYPE colour RENAME VALUE <span style="color: #9A7500;">'</span>violet<span style="color: #9A7500;">'</span> TO <span style="color: #9A7500;">'</span>red<span style="color: #9A7500;">'</span>;<span style="color: #97365B;">)</span>;
+        <span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgdcfafb5" class="outline-3">
+<h3 id="orgdcfafb5"><span class="section-number-3">3.3.</span> Removing Enum Value</h3>
+<div class="outline-text-3" id="text-3-3">
+<div class="org-src-container">
+<pre class="src src-java">
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Remove references to old enum value</span>
+            <span style="color: #97365B;">migrationBuilder</span>.Sql<span style="color: #3B6EA8;">(</span>@<span style="color: #9A7500;">"</span>
+ALTER TABLE <span style="color: #4F894C;">""</span>Entities<span style="color: #4F894C;">""</span>
+ALTER COLUMN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span>
+SET DATA TYPE colour USING CASE
+WHEN <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> = <span style="color: #9A7500;">'</span>yellow<span style="color: #9A7500;">'</span>::colour  THEN <span style="color: #9A7500;">'</span>red<span style="color: #9A7500;">'</span>::colour
+ELSE <span style="color: #9A7500;">'</span>red<span style="color: #9A7500;">'</span>::colour END;<span style="color: #9A7500;">"</span><span style="color: #4F894C;">);</span>
+
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Mark current enum type as old</span>
+            <span style="color: #97365B;">migrationBuilder</span>.Sql<span style="color: #97365B;">(</span>@<span style="color: #9A7500;">"</span>
+ALTER TYPE colour RENAME TO colour_old;
+<span style="color: #9A7500;">"</span><span style="color: #4F894C;">);</span>
+
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Set new enum</span>
+            <span style="color: #97365B;">migrationBuilder</span>.AlterDatabase<span style="color: #4F894C;">()</span>
+                .Annotation<span style="color: #4F894C;">(</span><span style="color: #4F894C;">"Npgsql:Enum:colour"</span>, <span style="color: #4F894C;">"red,blue"</span><span style="color: #4F894C;">)</span>;
+
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Update table to use new type</span>
+            <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Then drop old type</span>
+            <span style="color: #97365B;">migrationBuilder</span>.Sql<span style="color: #4F894C;">(</span>@<span style="color: #9A7500;">"</span>
+ALTER TABLE <span style="color: #4F894C;">""</span>Entities<span style="color: #4F894C;">""</span> ALTER <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span> TYPE colour USING <span style="color: #4F894C;">""</span>Colour<span style="color: #4F894C;">""</span>::TEXT::colours;
+
+DROP <span style="color: #9A7500;">TYPE</span> <span style="color: #842879;">colour_old</span>;
+<span style="color: #9A7500;">"</span><span style="color: #4F894C;">);</span>
+
+</pre>
+</div>
+
+<p>
+Migrations are particularly annoying when using PostgreSQL enums and I think I would avoid PostgreSQL enums them in the future.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgeecc301" class="outline-2">
+<h2 id="orgeecc301"><span class="section-number-2">4.</span> Resources</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+<a href="https://www.npgsql.org/efcore/mapping/enum.html?tabs=tabid-1">https://www.npgsql.org/efcore/mapping/enum.html?tabs=tabid-1</a>
+</p>
+</div>
+</div>

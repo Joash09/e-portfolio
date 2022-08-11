@@ -1,0 +1,690 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="blog-view/NLayerApplications#org82200c9">1. Brief Intro to N-Layer Apps</a>
+<ul>
+<li><a href="blog-view/NLayerApplications#org54ffd29">1.1. What is the difference between business, application and distributed service layers?</a></li>
+<li><a href="blog-view/NLayerApplications#org5d2b746">1.2. Brief intro to Object Relational Mappers (ORMs)</a></li>
+</ul>
+</li>
+<li><a href="blog-view/NLayerApplications#orgae9307b">2. N-Layer Project Setup</a>
+<ul>
+<li><a href="blog-view/NLayerApplications#org1567014">2.1. Setup Project Structure</a></li>
+<li><a href="blog-view/NLayerApplications#org788b9af">2.2. Define entities. (An object which will have an associated table in database)</a></li>
+<li><a href="blog-view/NLayerApplications#org8f5348e">2.3. Define DB context and register entities with DB context</a></li>
+<li><a href="blog-view/NLayerApplications#orgde45ab0">2.4. Add DB context to services</a></li>
+<li><a href="blog-view/NLayerApplications#orgcf3d89a">2.5. Manage Database Migrations</a></li>
+<li><a href="blog-view/NLayerApplications#org019461b">2.6. Creating repository blueprint</a></li>
+<li><a href="blog-view/NLayerApplications#orga937029">2.7. Implementing repository in application service layer</a></li>
+<li><a href="blog-view/NLayerApplications#org872b15f">2.8. Data Transfer Objects (DTOs) and AutoMapper</a></li>
+<li><a href="blog-view/NLayerApplications#orgc401dfb">2.9. Creating controllers</a></li>
+<li><a href="blog-view/NLayerApplications#orga80f4b3">2.10. Enabling SwaggerUI</a></li>
+<li><a href="blog-view/NLayerApplications#org086f548">2.11. Final project structure</a></li>
+</ul>
+</li>
+<li><a href="blog-view/NLayerApplications#org6d9b56f">3. Defining different types of relations with EntityFramework</a>
+<ul>
+<li><a href="blog-view/NLayerApplications#org20e830b">3.1. One to one</a></li>
+<li><a href="blog-view/NLayerApplications#orgf30e943">3.2. One to many</a></li>
+<li><a href="blog-view/NLayerApplications#orgc8a99f7">3.3. Many to Many.</a></li>
+</ul>
+</li>
+<li><a href="blog-view/NLayerApplications#org1f08215">4. Additional Resources</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org82200c9" class="outline-2">
+<h2 id="org82200c9"><span class="section-number-2">1.</span> Brief Intro to N-Layer Apps</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Software, especially in business, is almost always done with teams of developers. Software is only getting more complicated and with each developer producing hundreds of lines of code a day each addressing a different problem. It is easy to see how this will become difficult to manage. N-Layer applications is a software design pattern to separate the different &ldquo;concerns&rdquo; of an application into more organized layers. <sup><a id="fnr.1" class="footref" href="#fn.1" role="doc-backlink">1</a></sup> Although, making applications modular is often a subconscious practice for developers, it is worthwhile to define a formal way as to how to separate the different concerns of the project.
+</p>
+
+<p>
+It is worth mentioning that the N-layer design pattern is a general guideline on how to architect your projects. It can be adapted to how your project works and for small projects it is often overkill. You may adopt a simpler 3-layer approach or simple MVC model, for instance. I am discussing these 5 layers as they are what I have been exposed to professionally.
+</p>
+
+<p>
+In the case of a full stack web application we can divide the objectives into these categories:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Layer</th>
+<th scope="col" class="org-left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Business (Core)</td>
+<td class="org-left">Defines the classes which you will use to model &ldquo;business logic&rdquo; (see below)</td>
+</tr>
+
+<tr>
+<td class="org-left">Infrastructure (EntityFramework)</td>
+<td class="org-left">Responsible for managing everything related to the database (Discussed further with ORMs)</td>
+</tr>
+
+<tr>
+<td class="org-left">Application Service (Application)</td>
+<td class="org-left">Mediates between the business logic and the presentation layer</td>
+</tr>
+
+<tr>
+<td class="org-left">Distributed Service (Web Host)</td>
+<td class="org-left">Web API controllers are defined here (i.e. expose RESTful endpoints)</td>
+</tr>
+
+<tr>
+<td class="org-left">Presentation (Front-end)</td>
+<td class="org-left">Front application which the user interacts with</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div id="outline-container-org54ffd29" class="outline-3">
+<h3 id="org54ffd29"><span class="section-number-3">1.1.</span> What is the difference between business, application and distributed service layers?</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+This boils down to what is meant by business logic. It is loosely defined on the internet, but an example of business logic, in my view, may be modeling a bank account as a class. Alongside the name and balance properties, a withdraw method could also defined to ensure the balance cannot fall below zero.
+</p>
+
+<p>
+As the name suggests, the application layer implements logic relating to the functionality of the application itself. For instance a search function which joins and filters entities. Following the bank account example, creating a bank account requires creating a user account entity. On creation we may also want to send a one time pin to their email address for validation. The code to realize this will also be handled in the application layer.
+</p>
+
+<p>
+Finally, the distributed service layer is where the controllers for the back end are defined. Another way of looking at the application service layer is as an abstraction which helps keep the controllers clean. Controllers should never be implementing any business/validation logic or be interacting with repositories directly.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5d2b746" class="outline-3">
+<h3 id="org5d2b746"><span class="section-number-3">1.2.</span> Brief intro to Object Relational Mappers (ORMs)</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+Object Orientated Programmers think in terms of objects. The objects are defined by classes which contain properties associated with the object. Relational Databases think in terms of tables of records. Each record has fields associated with that record.
+</p>
+
+<p>
+Business applications require both relational databases to store the data as well as being able to convert that data to &ldquo;code objects&rdquo; so that the developers can use them in software. An Object Relational Mapper (ORM) tool which does exactly as the name suggests; map objects to relational records and vice versa. This tool hence can significantly simplify the life of the developers working with both code and relational data.
+</p>
+
+<p>
+Here I will outline the basic procedure to get Microsoft’s <a href="https://docs.microsoft.com/en-us/ef/core/">EntityFramework Core</a> (the open source version of the arguably most popular ORM tool: EntityFramework).
+I will specifically look at how developers can define their relational data as object orientated classes and how the ORM automatically creates its corresponding database relations. Furthermore, I will be using a PostgreSQL database which requires the <a href="https://www.npgsql.org/">Npgsql</a> add-on.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgae9307b" class="outline-2">
+<h2 id="orgae9307b"><span class="section-number-2">2.</span> N-Layer Project Setup</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+This write up will outline the process of creating a N-layer application from an empty ASP.NET project. Please note .NET 6 was used as of writing.
+</p>
+</div>
+
+<div id="outline-container-org1567014" class="outline-3">
+<h3 id="org1567014"><span class="section-number-3">2.1.</span> Setup Project Structure</h3>
+<div class="outline-text-3" id="text-2-1">
+<div class="org-src-container">
+<pre class="src src-bash">dotnet new web -o MyProject.Web.Host <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Create a new ASP.NET Core project</span>
+
+dotnet new classlib -o &lt;layer_name&gt; <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">define Core, Application and Infrastructure layers</span>
+<span style="color: #9A7500;">cd</span> &lt;layer_name&gt;
+dotnet add &lt;this_project.csprj&gt; reference &lt;path/to/other_layer.csprj&gt; <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Reference to the other layers</span>
+
+dotnet tool install --global dotnet-ef <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Download EntityFramework Core as a global tool (used across multiple projects)</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">In Web.Host and EntityFramework project layers add the following packages</span>
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Add support for PostgreSQL to EF Core</span>
+dotnet add package Microsoft.EntityFrameworkCore.Design
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org788b9af" class="outline-3">
+<h3 id="org788b9af"><span class="section-number-3">2.2.</span> Define entities. (An object which will have an associated table in database)</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Entities are defined in the Core layer. Each entity will have a corresponding class associated with it. Check the <a href="https://www.npgsql.org/doc/types/basic.html">documentation</a> to see how C# types map to PostgreSQL types. For defining relationships between entities, see Section below.
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">Blog</span> <span style="color: #3B6EA8;">{</span>
+
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">int</span> <span style="color: #842879;">Id</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">string</span> <span style="color: #842879;">Title</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">string</span> <span style="color: #842879;">Body</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Include other business logic here like constructors and methods for changing the specific property values</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8f5348e" class="outline-3">
+<h3 id="org8f5348e"><span class="section-number-3">2.3.</span> Define DB context and register entities with DB context</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+The infrastructure layer handles communication between the database and the application. In order to connect to the database, we must first define a database context. Within the database context, we also define the tables to be created using the entities defined in the domain layer. Any additional configuration, such as defining PostgreSQL enums or overriding property names or foreign keys are also defined here. In the infrastructure project, add the DbContext class below.
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #97365B;">Microsoft</span>.<span style="color: #842879;">EntityFrameworkCore</span>;
+<span style="color: #9A7500;">using</span> <span style="color: #97365B;">MyProject</span>.<span style="color: #842879;">Core</span>;
+
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">MyProjectDbContext</span> : DbContext
+<span style="color: #3B6EA8;">{</span>
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">DbSet</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">Blog</span><span style="color: #97365B;">&gt;</span> <span style="color: #842879;">Blogs</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> MyProjectDbContext<span style="color: #97365B;">(</span><span style="color: #9A7500;">DbContextOptions</span><span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">MyProjectDbContext</span><span style="color: #4F894C;">&gt;</span> <span style="color: #842879;">options</span><span style="color: #97365B;">)</span>: base<span style="color: #97365B;">(</span>options<span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">protected</span> override <span style="color: #9A7500;">void</span> <span style="color: #29838D;">OnModelCreating</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">ModelBuilder</span> <span style="color: #842879;">modelBuilder</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Any additional information needed when creating database relations</span>
+    <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgde45ab0" class="outline-3">
+<h3 id="orgde45ab0"><span class="section-number-3">2.4.</span> Add DB context to services</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+Register the DBContext with the Web.Host application&rsquo;s Program.cs file. In order to connect to the database, ASP.NET looks for a connection string label (which you have defined) in the appsettings.json file in the root of the Web.Host project. At this point, you need to ensure that you have created database and updated your appsettings.json file accordingly.
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #97365B;">Microsoft</span>.<span style="color: #842879;">EntityFrameworkCore</span>;
+
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">builder</span> = <span style="color: #97365B;">WebApplication</span>.CreateBuilder<span style="color: #3B6EA8;">(</span>args<span style="color: #3B6EA8;">)</span>;
+
+<span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Services</span>.AddDbContext<span style="color: #3B6EA8;">&lt;</span><span style="color: #9A7500;">MyProjectDbContext</span><span style="color: #3B6EA8;">&gt;(</span>options =&gt; <span style="color: #97365B;">options</span>.UseNpgsql<span style="color: #97365B;">(</span><span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Configuration</span>.GetConnectionString<span style="color: #4F894C;">(</span><span style="color: #4F894C;">"DBConnection"</span><span style="color: #4F894C;">)</span><span style="color: #97365B;">)</span><span style="color: #3B6EA8;">)</span>;
+
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">app</span> = <span style="color: #97365B;">builder</span>.Build<span style="color: #3B6EA8;">()</span>;
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">...</span>
+</pre>
+</div>
+
+<p>
+appsettings.json will include:
+</p>
+<div class="org-src-container">
+<pre class="src src-json">{
+  "ConnectionStrings": {
+    "DBConnection": "Server=localhost;Database=myprojectdb;Port=5432;User Id=postgres;",
+  },
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgcf3d89a" class="outline-3">
+<h3 id="orgcf3d89a"><span class="section-number-3">2.5.</span> Manage Database Migrations</h3>
+<div class="outline-text-3" id="text-2-5">
+<p>
+Migrations are like version control for the structure of your database. Say you want to add a new column to a table, you would first create a migration with this change. The migration not only holds the code to update the table with your new column but also holds the code to roll back the database before the change was made; just in case something breaks. Migrations are represented as .cs program files in the EntityFramework layer under the ./Migrations folder. Creating a migration does not automatically change the database. These program files can be inspected and manually altered, if needs be, before applying the migration.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">dotnet ef migrations add &lt;Name of Migration&gt; -s ../MyProject.Web.Host <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">add migration with defining startup project</span>
+dotnet ef database update -s ../MyProject.Web.Host <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">update database pointing to startup project</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org2ad8adb" class="outline-4">
+<h4 id="org2ad8adb"><span class="section-number-4">2.5.1.</span> Rolling back migrations</h4>
+<div class="outline-text-4" id="text-2-5-1">
+<p>
+If you apply a migration and decide you want to revert it, see the following steps. Also be aware of destructive database changes such as removing a column or altering its type. Once the data is lost it cannot be recovered.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">dotnet ef migrations list <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">list all migrations applied and pending</span>
+dotnet ef database update &lt;previous_migration&gt; <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Update the database to any previous migration desired</span>
+dotnet ef migration remove <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Remove last create migration. You can only remove migrations one at a time</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org019461b" class="outline-3">
+<h3 id="org019461b"><span class="section-number-3">2.6.</span> Creating repository blueprint</h3>
+<div class="outline-text-3" id="text-2-6">
+<p>
+It should be noted you definitely can interact directly with the database just with the DBContext but creating an additional repository abstraction for database interactions is a <a href="https://docs.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-implementation-entity-framework-core#using-a-custom-repository-versus-using-ef-dbcontext-directly">recommended</a> design pattern. You would rather have a layer that sits between you and the actual database access so that when you are interacting with the database you do not need to worry about implementing the connection to the database each time. Implementing a repository starts by implementing an abstract RepositoryBase class, as shown below. Methods may be added as you see fit. We&rsquo;ll see how to actually use the repository pattern for a specific entity in the next section.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #97365B;">System</span>.<span style="color: #97365B;">Linq</span>.<span style="color: #842879;">Expressions</span>;
+<span style="color: #9A7500;">using</span> <span style="color: #97365B;">Microsoft</span>.<span style="color: #842879;">EntityFrameworkCore</span>;
+
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Code adapted from https://code-maze.com/net-core-web-development-part4/</span>
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">abstract</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">RepositoryBase</span><span style="color: #3B6EA8;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #3B6EA8;">&gt;</span> <span style="color: #9A7500;">where</span> T: <span style="color: #3B6EA8;">class</span><span style="color: #3B6EA8;">{</span>
+
+    <span style="color: #3B6EA8;">private</span> readonly <span style="color: #9A7500;">MyProjectDbContext</span> <span style="color: #842879;">_context</span>;
+
+    <span style="color: #3B6EA8;">public</span> RepositoryBase<span style="color: #97365B;">(</span><span style="color: #9A7500;">MyProjectDbContext</span> <span style="color: #842879;">context</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        _context = context;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">IQueryable</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #97365B;">&gt;</span> <span style="color: #29838D;">FindAll</span><span style="color: #97365B;">()</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_context</span>.Set<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #4F894C;">&gt;()</span>.AsNoTracking<span style="color: #4F894C;">()</span>;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">IQueryable</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #97365B;">&gt;</span> <span style="color: #29838D;">FindByCondition</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">Expression</span><span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">Func</span><span style="color: #842879;">&lt;</span><span style="color: #9A7500;">T</span>, <span style="color: #9A7500;">bool</span><span style="color: #842879;">&gt;</span><span style="color: #4F894C;">&gt;</span> <span style="color: #842879;">expression</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_context</span>.Set<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #4F894C;">&gt;()</span>.Where<span style="color: #4F894C;">(</span>expression<span style="color: #4F894C;">)</span>.AsNoTracking<span style="color: #4F894C;">()</span>;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">T</span> <span style="color: #29838D;">Create</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">T</span> <span style="color: #842879;">entity</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_context</span>.Set<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #4F894C;">&gt;()</span>.Add<span style="color: #4F894C;">(</span>entity<span style="color: #4F894C;">)</span>.Entity;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">void</span> <span style="color: #29838D;">Update</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">T</span> <span style="color: #842879;">entity</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #97365B;">_context</span>.Set<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #4F894C;">&gt;()</span>.Update<span style="color: #4F894C;">(</span>entity<span style="color: #4F894C;">)</span>;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">void</span> <span style="color: #29838D;">Delete</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">T</span> <span style="color: #842879;">entity</span><span style="color: #97365B;">){</span>
+        <span style="color: #97365B;">_context</span>.Set<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">T</span><span style="color: #4F894C;">&gt;()</span>.Remove<span style="color: #4F894C;">(</span>entity<span style="color: #4F894C;">)</span>;
+    <span style="color: #97365B;">}</span>
+
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga937029" class="outline-3">
+<h3 id="orga937029"><span class="section-number-3">2.7.</span> Implementing repository in application service layer</h3>
+<div class="outline-text-3" id="text-2-7">
+<p>
+The application layer mediates between the presentation layer and the business logic.
+</p>
+
+<p>
+What are dependency injections? This is a technique whereby a class requests dependencies (other objects) which are instantiated as <b>singletons.</b> This is useful as it removes the requesting object’s responsibility of managing those dependencies themselves.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">BlogApplicationService</span> <span style="color: #3B6EA8;">{</span>
+
+    <span style="color: #3B6EA8;">private</span> readonly <span style="color: #9A7500;">RepositoryBase</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">Blog</span><span style="color: #97365B;">&gt;</span> <span style="color: #842879;">_blogRepository</span>;
+
+    <span style="color: #3B6EA8;">public</span> BlogApplicationService<span style="color: #97365B;">(</span><span style="color: #9A7500;">RepositoryBase</span><span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">Blog</span><span style="color: #4F894C;">&gt;</span> <span style="color: #842879;">blogRepository</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        _blogRepository = blogRepository;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">Blog</span> <span style="color: #29838D;">Create</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">Blog</span> <span style="color: #842879;">newBlog</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Any application logic can be inserted here</span>
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Silly examples include ensuring there is only one blog posted per day</span>
+        <span style="color: #9A7500;">var</span> <span style="color: #842879;">createdBlog</span> = <span style="color: #97365B;">_blogRepository</span>.Create<span style="color: #4F894C;">(</span>newBlog<span style="color: #4F894C;">)</span>;
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Or after creating call external service to notify subscribe users</span>
+        <span style="color: #3B6EA8;">return</span> createdBlog;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">Blog</span>? Get<span style="color: #97365B;">(</span><span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_blogRepository</span>.FindByCondition<span style="color: #4F894C;">(</span>b =&gt; <span style="color: #97365B;">b</span>.BlogId == id<span style="color: #4F894C;">)</span>.FirstOrDefault<span style="color: #4F894C;">()</span>;
+    <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org872b15f" class="outline-3">
+<h3 id="org872b15f"><span class="section-number-3">2.8.</span> Data Transfer Objects (DTOs) and AutoMapper</h3>
+<div class="outline-text-3" id="text-2-8">
+<p>
+It should be apparent that sending &ldquo;raw&rdquo; entities to the API poses a security risk. Consider for example a User entity with a password field which we don&rsquo;t want to pass to the presentation layer when fetching a user profile. To implement <b>data hiding</b>, we implement Data Transfer Objects which contain only the relevant information we want to pass to the presentation layer and omitting the rest.
+</p>
+
+<p>
+Following this, we see DTOs are tightly related to the entities themselves. Data we want to include in the DTO will probably share the same property name as the entity. AutoMapper is a package which makes the conversion between DTOs and entities easier by matching property names or custom defined rules defined in a mapping profile.
+</p>
+
+<p>
+Install the AutoMapper tool:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">install in the application service layer</span>
+</pre>
+</div>
+
+<p>
+Create mapping profile. The simplest is letting AutoMapper automatically match the name of the object properties to convert types. It is possible to create any custom configuration you may desire. Below we create a profile for mapping a Blog object to a BlogDto object, both of which is defined in the application service layer.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">BlogDto</span> <span style="color: #3B6EA8;">{</span>
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Omitting the ID property</span>
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">string</span> <span style="color: #842879;">Title</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">string</span> <span style="color: #842879;">Body</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #842879;">AutoMapper</span>;
+
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">BlogProfile</span> : Profile <span style="color: #3B6EA8;">{</span>
+    <span style="color: #3B6EA8;">public</span> BlogProfile<span style="color: #97365B;">()</span> <span style="color: #97365B;">{</span>
+        CreateMap<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">BlogDto</span>, <span style="color: #9A7500;">Blog</span><span style="color: #4F894C;">&gt;()</span> <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">CreateMap&lt;destination, source&gt;</span>
+            .ReverseMap<span style="color: #4F894C;">()</span>; <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Let the mapping work both ways (i.e. from BlogDto to Blog)</span>
+    <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+
+<p>
+We must register the AutoMapper profiles with the main application (i.e. Web Host&rsquo;s Program.cs)
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #842879;">AutoMapper</span>;
+
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">builder</span> = <span style="color: #97365B;">WebApplication</span>.CreateBuilder<span style="color: #3B6EA8;">(</span>args<span style="color: #3B6EA8;">)</span>;
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">...</span>
+
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">AutoMapper</span>
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">config</span> = <span style="color: #3B6EA8;">new</span> <span style="color: #9A7500;">MapperConfiguration</span><span style="color: #3B6EA8;">(</span>cfg =&gt; <span style="color: #97365B;">{</span>
+    <span style="color: #97365B;">cfg</span>.AddProfile<span style="color: #4F894C;">(</span><span style="color: #3B6EA8;">new</span> <span style="color: #9A7500;">BlogProfile</span><span style="color: #842879;">()</span><span style="color: #4F894C;">)</span>; <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Profile defined in application layer</span>
+<span style="color: #97365B;">}</span><span style="color: #3B6EA8;">)</span>;
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">mapper</span> = <span style="color: #97365B;">config</span>.CreateMapper<span style="color: #3B6EA8;">()</span>;
+<span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Services</span>.AddSingleton<span style="color: #3B6EA8;">(</span>mapper<span style="color: #3B6EA8;">)</span>;
+
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">...</span>
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">app</span> = <span style="color: #97365B;">builder</span>.Build<span style="color: #3B6EA8;">()</span>;
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">...</span>
+</pre>
+</div>
+
+<p>
+Lastly, update application service to return DTO opposed to &ldquo;raw&rdquo; entity. Mapping is done by injecting the IMapper interface and calling .Map&lt;destination&gt;(source)
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #842879;">AutoMapper</span>;
+
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">BlogApplicationService</span> <span style="color: #3B6EA8;">{</span>
+
+    <span style="color: #3B6EA8;">private</span> readonly <span style="color: #9A7500;">IMapper</span> <span style="color: #842879;">_mapper</span>;
+    <span style="color: #3B6EA8;">private</span> readonly <span style="color: #9A7500;">RepositoryBase</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">Blog</span><span style="color: #97365B;">&gt;</span> <span style="color: #842879;">_blogRepository</span>;
+
+    <span style="color: #3B6EA8;">public</span> BlogApplicationService<span style="color: #97365B;">(</span>
+        <span style="color: #9A7500;">IMapper</span> <span style="color: #842879;">mapper</span>,
+        <span style="color: #9A7500;">RepositoryBase</span><span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">Blog</span><span style="color: #4F894C;">&gt;</span> <span style="color: #842879;">blogRepository</span>
+    <span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        _mapper = mapper;
+        _blogRepository = blogRepository;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">BlogDto</span> <span style="color: #29838D;">Create</span><span style="color: #97365B;">(</span><span style="color: #9A7500;">BlogDto</span> <span style="color: #842879;">newBlog</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Any application logic can be inserted here</span>
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Silly examples include ensuring there is only one blog posted per day</span>
+
+        <span style="color: #9A7500;">var</span> <span style="color: #842879;">createdBlog</span> = <span style="color: #97365B;">_blogRepository</span>.Create<span style="color: #4F894C;">(</span><span style="color: #97365B;">_mapper</span>.Map<span style="color: #842879;">&lt;</span><span style="color: #9A7500;">Blog</span><span style="color: #842879;">&gt;(</span>newBlog<span style="color: #842879;">)</span><span style="color: #4F894C;">)</span>;
+
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Or after creating call external service to notify subscribe users</span>
+
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_mapper</span>.Map<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">BlogDto</span><span style="color: #4F894C;">&gt;(</span>createdBlog<span style="color: #4F894C;">)</span>;
+
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #3B6EA8;">public</span> <span style="color: #9A7500;">BlogDto</span>? Get<span style="color: #97365B;">(</span><span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #9A7500;">var</span> <span style="color: #842879;">blog</span> = <span style="color: #97365B;">_blogRepository</span>.FindByCondition<span style="color: #4F894C;">(</span>b =&gt; <span style="color: #97365B;">b</span>.BlogId == id<span style="color: #4F894C;">)</span>.FirstOrDefault<span style="color: #4F894C;">()</span>;
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_mapper</span>.Map<span style="color: #4F894C;">&lt;</span><span style="color: #9A7500;">BlogDto</span><span style="color: #4F894C;">&gt;(</span>blog<span style="color: #4F894C;">)</span>;
+    <span style="color: #97365B;">}</span>
+
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgc401dfb" class="outline-3">
+<h3 id="orgc401dfb"><span class="section-number-3">2.9.</span> Creating controllers</h3>
+<div class="outline-text-3" id="text-2-9">
+<p>
+The presentation layer exposes RESTful endpoints for which our front end will use to interact with the rest of the back end. The controller will specifically call the appropriate application service method and implement not business logic. Also remember the controller will only work with DTOs for data hiding.
+</p>
+
+<p>
+Despite having a clean controller, you may still feel the separation of the application service and the distributed service layers unnecessary. I do too. The AspBoilerplate project has an automatic way of registering the application service methods as controllers as well but implementing this is outside the scope of this write up.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #97365B;">Microsoft</span>.<span style="color: #97365B;">AspNetCore</span>.<span style="color: #842879;">Mvc</span>;
+
+<span style="color: #3B6EA8;">[</span>Route<span style="color: #97365B;">(</span><span style="color: #4F894C;">"api/blog"</span><span style="color: #97365B;">)</span><span style="color: #3B6EA8;">]</span>
+<span style="color: #3B6EA8;">[</span>ApiController<span style="color: #3B6EA8;">]</span>
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> BlogController : ControllerBase <span style="color: #3B6EA8;">{</span>
+
+    <span style="color: #3B6EA8;">private</span> readonly <span style="color: #9A7500;">BlogApplicationService</span> <span style="color: #842879;">_blogApplicationService</span>;
+
+    <span style="color: #3B6EA8;">public</span> BlogController<span style="color: #97365B;">(</span><span style="color: #9A7500;">BlogApplicationService</span> <span style="color: #842879;">blogApplicationService</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        _blogApplicationService = blogApplicationService;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #97365B;">[</span>HttpPost<span style="color: #97365B;">]</span>
+    <span style="color: #3B6EA8;">public</span> BlogDto Create<span style="color: #97365B;">(</span><span style="color: #9A7500;">BlogDto</span> <span style="color: #842879;">blog</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_blogApplicationService</span>.Create<span style="color: #4F894C;">(</span>blog<span style="color: #4F894C;">)</span>; <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Clean controller with application logic in application service layer</span>
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #97365B;">[</span>HttpGet<span style="color: #4F894C;">(</span><span style="color: #4F894C;">"{id}"</span><span style="color: #4F894C;">)</span><span style="color: #97365B;">]</span>
+    <span style="color: #3B6EA8;">public</span> BlogDto? GetBlog<span style="color: #97365B;">(</span><span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">return</span> <span style="color: #97365B;">_blogApplicationService</span>.Get<span style="color: #4F894C;">(</span>id<span style="color: #4F894C;">)</span>;
+    <span style="color: #97365B;">}</span>
+
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga80f4b3" class="outline-3">
+<h3 id="orga80f4b3"><span class="section-number-3">2.10.</span> Enabling SwaggerUI</h3>
+<div class="outline-text-3" id="text-2-10">
+<p>
+The API endpoints exposed is to be used by the front end application. It is important for these APIs to be thoroughly documented for the front end team to use it. SwaggerUI facilitates this process by providing a web based page describing each of the endpoints, their input parameters and return values. Furthermore, it is possible to &ldquo;try out&rdquo; these endpoints within the web browser without a front end application developed yet.
+</p>
+
+<p>
+SwaggerUI is part of the ASP.NET&rsquo;s Swashbuckle tooling for the OpenAPI specification. Alongside the Swashbuckle implementation of the OpenAPI specification, NSWAG is another implementation that could be used by the front end to automatically generate code to consume our API. This will not be covered here.
+</p>
+
+<p>
+<a href="https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-6.0&amp;tabs=netcore-cli">Documentation</a> for enabling Swashbuckle&rsquo;s SwaggerUI is summarized as follows:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">dotnet add package Swashbuckle.AspNetCore <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">add to Web Host layer</span>
+</pre>
+</div>
+
+<p>
+Register Swashbuckle as a service in Program.cs
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #9A7500;">using</span> <span style="color: #97365B;">Microsoft</span>.<span style="color: #842879;">EntityFrameworkCore</span>;
+
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">builder</span> = <span style="color: #97365B;">WebApplication</span>.CreateBuilder<span style="color: #3B6EA8;">(</span>args<span style="color: #3B6EA8;">)</span>;
+<span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Services</span>.AddDbContext<span style="color: #3B6EA8;">&lt;</span><span style="color: #9A7500;">MyProjectDbContext</span><span style="color: #3B6EA8;">&gt;(</span>options =&gt; <span style="color: #97365B;">options</span>.UseNpgsql<span style="color: #97365B;">(</span><span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Configuration</span>.GetConnectionString<span style="color: #4F894C;">(</span><span style="color: #4F894C;">"BloggingContext"</span><span style="color: #4F894C;">)</span><span style="color: #97365B;">)</span><span style="color: #3B6EA8;">)</span>;
+
+<span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Services</span>.AddControllers<span style="color: #3B6EA8;">()</span>;
+<span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Services</span>.AddEndpointsApiExplorer<span style="color: #3B6EA8;">()</span>;
+
+<span style="color: #97365B;">builder</span>.<span style="color: #97365B;">Services</span>.AddSwaggerGen<span style="color: #3B6EA8;">()</span>; <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">&lt;--- register as service</span>
+
+<span style="color: #9A7500;">var</span> <span style="color: #842879;">app</span> = <span style="color: #97365B;">builder</span>.Build<span style="color: #3B6EA8;">()</span>;
+
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">VVV enable SwaggerUI for development environments</span>
+<span style="color: #3B6EA8;">if</span> <span style="color: #3B6EA8;">(</span><span style="color: #97365B;">app</span>.<span style="color: #97365B;">Environment</span>.IsDevelopment<span style="color: #97365B;">()</span><span style="color: #3B6EA8;">)</span> <span style="color: #3B6EA8;">{</span>
+    <span style="color: #97365B;">app</span>.UseSwagger<span style="color: #97365B;">()</span>;
+    <span style="color: #97365B;">app</span>.UseSwaggerUI<span style="color: #97365B;">(</span>options =&gt; <span style="color: #4F894C;">{</span>
+            <span style="color: #97365B;">options</span>.SwaggerEndpoint<span style="color: #842879;">(</span><span style="color: #4F894C;">"/swagger/v1/swagger.json"</span>, <span style="color: #4F894C;">"v1"</span><span style="color: #842879;">)</span>;
+            <span style="color: #97365B;">options</span>.RoutePrefix = <span style="color: #97365B;">string</span>.Empty;
+    <span style="color: #4F894C;">}</span><span style="color: #97365B;">)</span>; <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">&lt;-- options to serve SwaggerUI documentation on URL root</span>
+<span style="color: #3B6EA8;">}</span>
+
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">...</span>
+
+<span style="color: #97365B;">app</span>.Run<span style="color: #3B6EA8;">()</span>;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org086f548" class="outline-3">
+<h3 id="org086f548"><span class="section-number-3">2.11.</span> Final project structure</h3>
+<div class="outline-text-3" id="text-2-11">
+<div class="org-src-container">
+<pre class="src src-bash">NLayerTutorial/
+&#9500;&#9472;&#9472; MyProject.Application
+&#9474;&#160;&#160; &#9500;&#9472;&#9472; Blogs
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9500;&#9472;&#9472; BlogApplicationService.cs
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9500;&#9472;&#9472; DTO
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9474;&#160;&#160; &#9492;&#9472;&#9472; BlogDto.cs
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9492;&#9472;&#9472; MappingProfiles
+&#9474;&#160;&#160; &#9474;&#160;&#160;     &#9492;&#9472;&#9472; BlogProfile.cs
+&#9474;&#160;&#160; &#9500;&#9472;&#9472; MyProject.Application.csproj
+&#9500;&#9472;&#9472; MyProject.Core
+&#9474;&#160;&#160; &#9500;&#9472;&#9472; Entities
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9492;&#9472;&#9472; Blog.cs
+&#9474;&#160;&#160; &#9500;&#9472;&#9472; MyProject.Core.csproj
+&#9500;&#9472;&#9472; MyProject.Infrastructure
+&#9474;&#160;&#160; &#9500;&#9472;&#9472; Migrations
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9500;&#9472;&#9472; 20220811131745_Init.cs
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9500;&#9472;&#9472; 20220811131745_Init.Designer.cs
+&#9474;&#160;&#160; &#9474;&#160;&#160; &#9492;&#9472;&#9472; MyProjectDbContextModelSnapshot.cs
+&#9474;&#160;&#160; &#9500;&#9472;&#9472; MyProjectDbContext.cs
+&#9474;&#160;&#160; &#9500;&#9472;&#9472; MyProject.Infrastructure.csproj
+&#9474;&#160;&#160; &#9492;&#9472;&#9472; Repositories
+&#9474;&#160;&#160;     &#9500;&#9472;&#9472; IRepository.cs
+&#9474;&#160;&#160;     &#9492;&#9472;&#9472; RepositoryBase.cs
+&#9492;&#9472;&#9472; MyProject.Web.Host
+    &#9500;&#9472;&#9472; appsettings.Development.json
+    &#9500;&#9472;&#9472; appsettings.json
+    &#9500;&#9472;&#9472; Controllers
+    &#9474;&#160;&#160; &#9492;&#9472;&#9472; BlogController.cs
+    &#9500;&#9472;&#9472; MyProject.Web.Host.csproj
+    &#9500;&#9472;&#9472; Program.cs
+    &#9492;&#9472;&#9472; Properties
+        &#9492;&#9472;&#9472; launchSettings.json
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6d9b56f" class="outline-2">
+<h2 id="org6d9b56f"><span class="section-number-2">3.</span> Defining different types of relations with EntityFramework</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Earlier, we created an entity which has no relationship with any other entity. In relational database design there are three types of relationships between entities (tables). They are defined as follows:
+</p>
+</div>
+
+<div id="outline-container-org20e830b" class="outline-3">
+<h3 id="org20e830b"><span class="section-number-3">3.1.</span> One to one</h3>
+<div class="outline-text-3" id="text-3-1">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">EntityA</span> <span style="color: #3B6EA8;">{</span>
+        Public <span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">string</span> <span style="color: #842879;">name</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">EntityB</span> <span style="color: #3B6EA8;">{</span>
+        Public <span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">string</span> <span style="color: #842879;">name</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-orgf30e943" class="outline-3">
+<h3 id="orgf30e943"><span class="section-number-3">3.2.</span> One to many</h3>
+<div class="outline-text-3" id="text-3-2">
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">EntityA</span> <span style="color: #3B6EA8;">{</span>
+        Public <span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">string</span> <span style="color: #842879;">name</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">EntityB</span> <span style="color: #3B6EA8;">{</span>
+        Public <span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">string</span> <span style="color: #842879;">name</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">IList</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">EntityA</span><span style="color: #97365B;">&gt;</span> <span style="color: #842879;">CollectionOfEntities</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-orgc8a99f7" class="outline-3">
+<h3 id="orgc8a99f7"><span class="section-number-3">3.3.</span> Many to Many.</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+Note: EntityFramework Core does not support this relationship out of the box. Instead we can get around this by creating 2 one to many relationships in both ways. Furthermore an intermediary entity will need to be created to represent the “joining table” required for a many to many relationship.
+</p>
+<div class="org-src-container">
+<pre class="src src-java"><span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">EntityA</span> <span style="color: #3B6EA8;">{</span>
+        Public <span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">string</span> <span style="color: #842879;">name</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">IList</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">EntityAEntityB</span><span style="color: #97365B;">&gt;</span> <span style="color: #842879;">CollectionOfEntitiesB</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">EntityB</span> <span style="color: #3B6EA8;">{</span>
+        Public <span style="color: #9A7500;">int</span> <span style="color: #842879;">id</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">string</span> <span style="color: #842879;">name</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+        Public <span style="color: #9A7500;">IList</span><span style="color: #97365B;">&lt;</span><span style="color: #9A7500;">EntityAEntityB</span><span style="color: #97365B;">&gt;</span> <span style="color: #842879;">CollectionOfEntitiesA</span> <span style="color: #97365B;">{</span> get; set; <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+
+<span style="color: #3B6EA8;">public</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">EntityAEntityB</span> <span style="color: #3B6EA8;">{</span> <span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+
+<div id="outline-container-org1f08215" class="outline-2">
+<h2 id="org1f08215"><span class="section-number-2">4.</span> Additional Resources</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li>Framework N-Tier web application design with ASP.NET Core: <a href="https://aspnetboilerplate.com/Pages/Documents/NLayer-Architecture">https://aspnetboilerplate.com/Pages/Documents/NLayer-Architecture</a></li>
+<li>Repository Pattern: <a href="https://docs.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design">https://docs.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/infrastructure-persistence-layer-design</a></li>
+</ul>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+Layers and Tiers are often used interchangeably, however tiers are used to denoted a physical separation (i.e. different parts of the application running on different hardware) versus a logical separation.
+</p></div></div>
+
+
+</div>
+</div>

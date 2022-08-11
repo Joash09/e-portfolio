@@ -2,44 +2,45 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="blog-view/DeploySite#org26f29ca">1. Motivation</a></li>
-<li><a href="blog-view/DeploySite#org8cc6cd7">2. Create Azure Resource</a></li>
-<li><a href="blog-view/DeploySite#orga7f9c50">3. Ensure Web app is packaged well</a></li>
-<li><a href="blog-view/DeploySite#orgca865ba">4. Uploading project to Azure resource</a></li>
-<li><a href="blog-view/DeploySite#orgdcb2278">5. Set up Domain</a></li>
-<li><a href="blog-view/DeploySite#org44c505f">6. Link Domain to Azure resource</a></li>
+<li><a href="blog-view/DeployStaticSite#org288a38f">1. Motivation</a></li>
+<li><a href="blog-view/DeployStaticSite#org6cc5e2c">2. Create Azure Resource</a></li>
+<li><a href="blog-view/DeployStaticSite#org2cbfdb7">3. Ensure Web app is packaged well</a></li>
+<li><a href="blog-view/DeployStaticSite#org97ca075">4. Tell Azure how to handle routing</a></li>
+<li><a href="blog-view/DeployStaticSite#org69d1320">5. Uploading project to Azure resource</a></li>
+<li><a href="blog-view/DeployStaticSite#org40cc87e">6. Set up Domain</a></li>
+<li><a href="blog-view/DeployStaticSite#org1198ffa">7. Link Domain to Azure resource</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org26f29ca" class="outline-2">
-<h2 id="org26f29ca"><span class="section-number-2">1.</span> Motivation</h2>
+<div id="outline-container-org288a38f" class="outline-2">
+<h2 id="org288a38f"><span class="section-number-2">1.</span> Motivation</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-When I set out to create this website, I wanted to have be able to include webapps within the portfolio itself. I incorrectly thought that this meant I couldn&rsquo;t serve it as a static website, because these webapps pages are not just static HTML pages. However, in the end these webapps are just javascript files which are downloaded to your browser and hence could very much be served from a simple storage cloud instance. Here are the steps:
+When I set out to create this website, I wanted to have be able to include webapps within the portfolio itself. I incorrectly thought that this meant I couldn&rsquo;t serve it as a static website, because the term &ldquo;webapps&rdquo; don&rsquo;t sound like static HTML pages. However, in the end these webapps are just JavaScript files which are downloaded to your browser and hence, could very much be served from a simple storage cloud instance. Here are the steps:
 </p>
 </div>
 </div>
 
-<div id="outline-container-org8cc6cd7" class="outline-2">
-<h2 id="org8cc6cd7"><span class="section-number-2">2.</span> Create Azure Resource</h2>
+<div id="outline-container-org6cc5e2c" class="outline-2">
+<h2 id="org6cc5e2c"><span class="section-number-2">2.</span> Create Azure Resource</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-Create a static website storage instance on <a href="https:docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-portal">Azure</a>
+Create a static website storage instance on <a href="https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-portal">Azure</a>
 </p>
 <ul class="org-ul">
-<li>The storage instance is made up of &ldquo;blobs.&rdquo; Azure automatically creates a web blob and configure it to be accessable with a &ldquo;ugly&rdquo; default URL.</li>
+<li>The storage instance is made up of &ldquo;blobs.&rdquo; Azure automatically creates a web blob and configure it to be accessible with a &ldquo;ugly&rdquo; default URL.</li>
 <li>You can set the storage account with CI integration if you link your project repository to Azure. Alternatively, you can manually deploy the project with Azure Copy command line <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">tool</a>.</li>
 <li>We will add a custom domain later</li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orga7f9c50" class="outline-2">
-<h2 id="orga7f9c50"><span class="section-number-2">3.</span> Ensure Web app is packaged well</h2>
+<div id="outline-container-org2cbfdb7" class="outline-2">
+<h2 id="org2cbfdb7"><span class="section-number-2">3.</span> Ensure Web app is packaged well</h2>
 <div class="outline-text-2" id="text-3">
 <p>
-Before deploying, it is a good idea to ensure the size of the initial webapp bundle is not huge. Obviously the bigger it is; the longer the user has to wait for your website to load.
+Before deploying, it is a good idea to ensure the size of the initial web app bundle is not huge. Obviously the bigger it is; the longer the user has to wait for your website to load.
 </p>
 <ul class="org-ul">
 <li>We will use <a href="https://github.com/https://github.com/webpack-contrib/webpack-bundle-analyzer">webpack-bundle-analyzer</a></li>
@@ -105,9 +106,27 @@ In the package.json add the following in the scripts entry. Ensure your path to 
 </div>
 </div>
 
-<div id="outline-container-orgca865ba" class="outline-2">
-<h2 id="orgca865ba"><span class="section-number-2">4.</span> Uploading project to Azure resource</h2>
+<div id="outline-container-org97ca075" class="outline-2">
+<h2 id="org97ca075"><span class="section-number-2">4.</span> Tell Azure how to handle routing</h2>
 <div class="outline-text-2" id="text-4">
+<p>
+In Angular (or any Single Page Application (SPA) project), the routing is handled internally. For instance when navigating to <a href="https://website.com/new-page">https://website.com/new-page</a>, we expect Angular to resolve this internally (i.e. load corresponding components) as opposed to Azure trying to find a new-page.html file to serve to serve us. To configure Azure to let Angular handle the routing, create a staticwebapp.config.json file in the root directory of the project and add the content below. If not, we&rsquo;ll get 404 errors when navigating manually or refreshing the web page on any route that is not the root URL.
+</p>
+<div class="org-src-container">
+<pre class="src src-json">{
+    "navigationFallback": {
+        "rewrite": "index.html",
+        "exclude": ["/static/images/*.{png,jpg,gif}", "/static/css/*"]
+    },
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org69d1320" class="outline-2">
+<h2 id="org69d1320"><span class="section-number-2">5.</span> Uploading project to Azure resource</h2>
+<div class="outline-text-2" id="text-5">
 <p>
 If you created your Azure resource with CI, this step is unnecessary. To deploy you would just push to your master/main branch. If manually deploying:
 </p>
@@ -133,24 +152,24 @@ Build project and upload
 </div>
 </div>
 
-<div id="outline-container-orgdcb2278" class="outline-2">
-<h2 id="orgdcb2278"><span class="section-number-2">5.</span> Set up Domain</h2>
-<div class="outline-text-2" id="text-5">
+<div id="outline-container-org40cc87e" class="outline-2">
+<h2 id="org40cc87e"><span class="section-number-2">6.</span> Set up Domain</h2>
+<div class="outline-text-2" id="text-6">
 <p>
 Buy a custom domain
 </p>
 <ul class="org-ul">
-<li>I used <a href="https:https://domains.google.com/">Google Domains</a></li>
-<li>Worth checking out different domain providers before commiting. Ensure you are comparing renewal fees, as well as the initial fee</li>
+<li>I used <a href="https://domains.google.com/">Google Domains</a></li>
+<li>Worth checking out different domain providers before committing. Ensure you are comparing renewal fees, as well as the initial fee</li>
 <li>Once you have purchased your domain, you will have access to DNS settings for this domain</li>
 <li>By having access to these DNS settings and the ability to create DNS records, we can prove that we do in fact own this domain</li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org44c505f" class="outline-2">
-<h2 id="org44c505f"><span class="section-number-2">6.</span> Link Domain to Azure resource</h2>
-<div class="outline-text-2" id="text-6">
+<div id="outline-container-org1198ffa" class="outline-2">
+<h2 id="org1198ffa"><span class="section-number-2">7.</span> Link Domain to Azure resource</h2>
+<div class="outline-text-2" id="text-7">
 <ol class="org-ol">
 <li>Once you have your custom domain, it needs to be linked to your storage account
 <ul class="org-ul">
@@ -171,13 +190,13 @@ Buy a custom domain
 <li>Create CNAME record for www subdomain [<a href="https:https://docs.microsoft.com/en-us/azure/static-web-apps/custom-domain-external">1</a>]
 <ul class="org-ul">
 <li>Create a new DNS record of type CNAME and with the value of the &ldquo;ugly&rdquo; default URL for your storage account</li>
-<li>After creating and the settings have propogated through the network, your website is now live</li>
+<li>After creating and the settings have propagated through the network, your website is now live</li>
 <li>Remember the www when entering the URL</li>
 </ul></li>
 <li>Create redirect for APEX domain
 <ul class="org-ul">
 <li>I don&rsquo;t often type www when I want to visit a website</li>
-<li>I want to offer vistors to my site the same convience</li>
+<li>I want to offer visitors to my site the same convenience</li>
 <li>Typically this is done by adding a ALIAS type DNS record with our DNS provider, but Google Domains does not offer this</li>
 <li>Instead go to the &ldquo;Website&rdquo; settings in your Google domains portal</li>
 <li>Create forwarding rule

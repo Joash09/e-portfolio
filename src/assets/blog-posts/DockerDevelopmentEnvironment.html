@@ -1,0 +1,30 @@
+<p>
+Often when exploring various open source projects, you often see near the end of the README that there is a Docker image provided.
+Compiling software yourself have its use cases by configuring it exactly how you desire but this also comes at the risk of running into problems such as not having the correct dependencies or forgetting important steps because you didn’t read the documentation carefully. Sometimes you just don’t want this hassle, so developers sometimes graciously provide a pre-built docker image with all the required dependencies so you can run the tool with minimal effort.
+</p>
+
+<p>
+This is great but can Docker containers be used to set up a development environment? This is the question I found myself asking after wanting to try out GHDL, a compiler and simulation tool for VHDL. At first I thought you could run the container interactively and this would give you terminal access into the container but then I realized these containers are minimal. They don’t have my favourite text editors and/or other tools included. And more importantly storage within the container is not persistent, meaning that once the container stops all the data within is also lost.
+</p>
+
+<p>
+With that in mind, here I document a development flow with a GHDL docker container using Docker mounts. Obviously we can get started by first pulling the docker image we want to work with. This step is actually optional since Docker will automatically pull the image if it can’t find it locally when running the following commands later. The following Docker run command mounts our current working directory (files we edit with the host system) into the container. We can then call the ghdl binary (with arguments) on the mounted files. The ghdl tool will also produce files stored on this mounted directory. When the command has run the container will be destroyed as expected but output files will persist in the directory that was mounted.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">docker pull ghdl/ghdl
+
+docker run -it --rm -v $<span style="color: #842879;">PWD</span>:/work -w /work ghdl/ghdl <span style="color: #3B6EA8;">{</span><span style="color: #29838D;">command</span><span style="color: #3B6EA8;">}</span> <span style="color: #3B6EA8;">{</span>arguments<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>-it : Run the container interactively. This will allow us to see the output of the container</li>
+<li>&#x2013;rm : Remove the container once it is done running</li>
+<li>-v : Mount the current working directory to a folder “/work” in the container</li>
+<li>-w : Change the working directory of the container to “/work” Remember this is where we copied all our files to</li>
+</ul>
+
+<p>
+After the container has run the command, the resulting output files in the same directory as your mounted volume.
+</p>
