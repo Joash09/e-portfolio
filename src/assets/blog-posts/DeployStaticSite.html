@@ -2,19 +2,19 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="blog-view/DeployStaticSite#org288a38f">1. Motivation</a></li>
-<li><a href="blog-view/DeployStaticSite#org6cc5e2c">2. Create Azure Resource</a></li>
-<li><a href="blog-view/DeployStaticSite#org2cbfdb7">3. Ensure Web app is packaged well</a></li>
-<li><a href="blog-view/DeployStaticSite#org97ca075">4. Tell Azure how to handle routing</a></li>
-<li><a href="blog-view/DeployStaticSite#org69d1320">5. Uploading project to Azure resource</a></li>
-<li><a href="blog-view/DeployStaticSite#org40cc87e">6. Set up Domain</a></li>
-<li><a href="blog-view/DeployStaticSite#org1198ffa">7. Link Domain to Azure resource</a></li>
+<li><a href="blog-view/DeployStaticSite#org925cc7c">1. Motivation</a></li>
+<li><a href="blog-view/DeployStaticSite#org1a41773">2. Create Azure Resource</a></li>
+<li><a href="blog-view/DeployStaticSite#org5034cdd">3. Ensure Web app is packaged well</a></li>
+<li><a href="blog-view/DeployStaticSite#org8b87942">4. Tell Azure how to handle routing</a></li>
+<li><a href="blog-view/DeployStaticSite#org7689722">5. Uploading project to Azure resource</a></li>
+<li><a href="blog-view/DeployStaticSite#orgf43b19e">6. Set up Domain</a></li>
+<li><a href="blog-view/DeployStaticSite#org5401c24">7. Link Domain to Azure resource</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org288a38f" class="outline-2">
-<h2 id="org288a38f"><span class="section-number-2">1.</span> Motivation</h2>
+<div id="outline-container-org925cc7c" class="outline-2">
+<h2 id="org925cc7c"><span class="section-number-2">1.</span> Motivation</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 When I set out to create this website, I wanted to have be able to include webapps within the portfolio itself. I incorrectly thought that this meant I couldn&rsquo;t serve it as a static website, because the term &ldquo;webapps&rdquo; don&rsquo;t sound like static HTML pages. However, in the end these webapps are just JavaScript files which are downloaded to your browser and hence, could very much be served from a simple storage cloud instance. Here are the steps:
@@ -22,8 +22,8 @@ When I set out to create this website, I wanted to have be able to include webap
 </div>
 </div>
 
-<div id="outline-container-org6cc5e2c" class="outline-2">
-<h2 id="org6cc5e2c"><span class="section-number-2">2.</span> Create Azure Resource</h2>
+<div id="outline-container-org1a41773" class="outline-2">
+<h2 id="org1a41773"><span class="section-number-2">2.</span> Create Azure Resource</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Create a static website storage instance on <a href="https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-portal">Azure</a>
@@ -36,8 +36,8 @@ Create a static website storage instance on <a href="https://docs.microsoft.com/
 </div>
 </div>
 
-<div id="outline-container-org2cbfdb7" class="outline-2">
-<h2 id="org2cbfdb7"><span class="section-number-2">3.</span> Ensure Web app is packaged well</h2>
+<div id="outline-container-org5034cdd" class="outline-2">
+<h2 id="org5034cdd"><span class="section-number-2">3.</span> Ensure Web app is packaged well</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Before deploying, it is a good idea to ensure the size of the initial web app bundle is not huge. Obviously the bigger it is; the longer the user has to wait for your website to load.
@@ -45,37 +45,33 @@ Before deploying, it is a good idea to ensure the size of the initial web app bu
 <ul class="org-ul">
 <li>We will use <a href="https://github.com/https://github.com/webpack-contrib/webpack-bundle-analyzer">webpack-bundle-analyzer</a></li>
 <li>When creating an Angular project, the CLI tool will typically create a &ldquo;production&rdquo; configuration automatically</li>
-<li>Within the production configuration, we can set the budgets of our Angular app
-<ul class="org-ul">
+<li>Within the production configuration, we can set the budgets of our Angular app</li>
 <li><p>
-Budgets will warn you if your app is too big and if you will need to analyze
+Budgets will warn you if your app is too big and if you will need to optimize
 </p>
-
 <div class="org-src-container">
-<pre class="src src-json">     "configurations": {
-       "production": {
-         "budgets": [
-           {
-             "type": "initial",
-             "maximumWarning": "500kb",
-             "maximumError": "1mb"
-           },
-           {
-             "type": "anyComponentStyle",
-             "maximumWarning": "2kb",
-             "maximumError": "4kb"
-           }
-         ],
-       }
+<pre class="src src-json">   "configurations": {
+     "production": {
+       "budgets": [
+         {
+           "type": "initial",
+           "maximumWarning": "500kb",
+           "maximumError": "1mb"
+         },
+         {
+           "type": "anyComponentStyle",
+           "maximumWarning": "2kb",
+           "maximumError": "4kb"
+         }
+       ],
      }
+   }
 </pre>
 </div></li>
-</ul></li>
 
 <li><p>
 webpack-bundle-analyzer is a package we can install using npm or yarn (I used yarn)
 </p>
-
 <div class="org-src-container">
 <pre class="src src-bash">npm i -D webpack-bundle-analyzer <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">or</span>
 yarn add -D webpack-bundle-analyzer
@@ -86,7 +82,6 @@ yarn add -D webpack-bundle-analyzer
 <li><p>
 The file is included in the dist directory
 </p>
-
 <div class="org-src-container">
 <pre class="src src-bash">ng build --configuration=production --stats-json
 </pre>
@@ -95,22 +90,29 @@ The file is included in the dist directory
 <li><p>
 In the package.json add the following in the scripts entry. Ensure your path to the stats.json file is correct
 </p>
-
 <div class="org-src-container">
-<pre class="src src-json">       "scripts": {
-          "analyze": "webpack-bundle-analyzer dist/static-portfolio/stats.json",
-       }
+<pre class="src src-json">    "scripts": {
+        "analyze": "webpack-bundle-analyzer dist/static-portfolio/stats.json"
+    }
+</pre>
+</div></li>
+
+<li><p>
+Running the analyzer tool will open a web browser tab with a graphical view of which packages are taking up the most space
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">    npm run analyze <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">run analyze script defined above</span>
 </pre>
 </div></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org97ca075" class="outline-2">
-<h2 id="org97ca075"><span class="section-number-2">4.</span> Tell Azure how to handle routing</h2>
+<div id="outline-container-org8b87942" class="outline-2">
+<h2 id="org8b87942"><span class="section-number-2">4.</span> Tell Azure how to handle routing</h2>
 <div class="outline-text-2" id="text-4">
 <p>
-In Angular (or any Single Page Application (SPA) project), the routing is handled internally. For instance when navigating to <a href="https://website.com/new-page">https://website.com/new-page</a>, we expect Angular to resolve this internally (i.e. load corresponding components) as opposed to Azure trying to find a new-page.html file to serve to serve us. To configure Azure to let Angular handle the routing, create a staticwebapp.config.json file in the root directory of the project and add the content below. If not, we&rsquo;ll get 404 errors when navigating manually or refreshing the web page on any route that is not the root URL.
+In Angular (or any Single Page Application [SPA] project), the routing is handled internally. For instance when navigating to <a href="https://website.com/new-page">https://website.com/new-page</a>, we expect Angular to resolve this internally (i.e. load corresponding components) as opposed to Azure trying to find a new-page.html file to serve to us. To configure Azure to let Angular handle the routing, create a staticwebapp.config.json file in the root directory of the project and add the content below. If not, we&rsquo;ll get 404 errors when navigating manually or refreshing the web page on any route that is not the root URL.
 </p>
 <div class="org-src-container">
 <pre class="src src-json">{
@@ -124,8 +126,8 @@ In Angular (or any Single Page Application (SPA) project), the routing is handle
 </div>
 </div>
 
-<div id="outline-container-org69d1320" class="outline-2">
-<h2 id="org69d1320"><span class="section-number-2">5.</span> Uploading project to Azure resource</h2>
+<div id="outline-container-org7689722" class="outline-2">
+<h2 id="org7689722"><span class="section-number-2">5.</span> Uploading project to Azure resource</h2>
 <div class="outline-text-2" id="text-5">
 <p>
 If you created your Azure resource with CI, this step is unnecessary. To deploy you would just push to your master/main branch. If manually deploying:
@@ -152,8 +154,8 @@ Build project and upload
 </div>
 </div>
 
-<div id="outline-container-org40cc87e" class="outline-2">
-<h2 id="org40cc87e"><span class="section-number-2">6.</span> Set up Domain</h2>
+<div id="outline-container-orgf43b19e" class="outline-2">
+<h2 id="orgf43b19e"><span class="section-number-2">6.</span> Set up Domain</h2>
 <div class="outline-text-2" id="text-6">
 <p>
 Buy a custom domain
@@ -167,8 +169,8 @@ Buy a custom domain
 </div>
 </div>
 
-<div id="outline-container-org1198ffa" class="outline-2">
-<h2 id="org1198ffa"><span class="section-number-2">7.</span> Link Domain to Azure resource</h2>
+<div id="outline-container-org5401c24" class="outline-2">
+<h2 id="org5401c24"><span class="section-number-2">7.</span> Link Domain to Azure resource</h2>
 <div class="outline-text-2" id="text-7">
 <ol class="org-ol">
 <li>Once you have your custom domain, it needs to be linked to your storage account
@@ -187,7 +189,7 @@ Buy a custom domain
 <li>Azure will verify you have control over your domain (takes up to 48 hours)</li>
 </ul></li>
 </ul></li>
-<li>Create CNAME record for www subdomain [<a href="https:https://docs.microsoft.com/en-us/azure/static-web-apps/custom-domain-external">1</a>]
+<li>Create CNAME record for www subdomain [<a href="https://docs.microsoft.com/en-us/azure/static-web-apps/custom-domain-external">1</a>]
 <ul class="org-ul">
 <li>Create a new DNS record of type CNAME and with the value of the &ldquo;ugly&rdquo; default URL for your storage account</li>
 <li>After creating and the settings have propagated through the network, your website is now live</li>
