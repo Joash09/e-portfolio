@@ -1,5 +1,7 @@
 # StaticPortfolio
 
+This project is hosted at [www.joashnaidoo.com](https://www.joashnaidoo.com)
+
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.2.4.
 
 ## Development server
