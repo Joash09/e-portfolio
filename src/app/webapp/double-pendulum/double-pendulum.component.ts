@@ -1,4 +1,5 @@
-import { AfterContentChecked, AfterContentInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, OnDestroy, OnInit, Inject } from '@angular/core';
 import { Engine, Render, Constraint, Mouse, MouseConstraint, Bodies, Composites, Composite, Body, Events, Vector, Runner, World} from 'matter-js';
 
 @Component({
@@ -11,7 +12,7 @@ export class DoublePendulumComponent implements OnInit, OnDestroy {
 	engine!: Engine;
 	render!: Render;
 
-	constructor() {
+	constructor(@Inject(DOCUMENT) private _document: Document) {
 
 	}
 
@@ -29,7 +30,7 @@ export class DoublePendulumComponent implements OnInit, OnDestroy {
 		// Set up the basic engine and render components
 		this.engine = Engine.create();
 		this.render = Render.create({
-			element: document.getElementById('physicsRenderComponent') as HTMLElement,
+			element: this._document.getElementById('physicsRenderComponent') as HTMLElement,
 			engine: this.engine,
 			options: {
 				width: 700,
