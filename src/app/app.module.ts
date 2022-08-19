@@ -18,7 +18,7 @@ import { BlogViewComponent } from './blog-view/blog-view.component';
     BlogViewComponent,
   ],
   imports: [
-    BrowserModule,
+    BrowserModule.withServerTransition({ appId: 'serverApp' }),
     HttpClientModule,
     AppRoutingModule,
     FontAwesomeModule
