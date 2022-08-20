@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { DrawDirective } from './draw.directive';
 
 import { tidy, browser } from '@tensorflow/tfjs';
@@ -18,8 +19,8 @@ export class NeuralNetComponent implements OnInit {
   prediction = '';
   model: any;
 
-  constructor() {
-    this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
+  constructor(@Inject(DOCUMENT) private _document: Document) {
+    this.canvas = this._document.getElementById('canvas') as HTMLCanvasElement;
   }
 
   ngOnInit() {
