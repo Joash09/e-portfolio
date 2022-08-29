@@ -16,7 +16,7 @@ async function run() {
 
         console.log("Running prerender");
         var prerender = require('child_process').spawn('npm', ['run', 'prerender']);
-        var prerenderTimeoutSeconds = 120;
+        var prerenderTimeoutSeconds = 240;
         var timeoutObject;
         var timeoutResolve;
         var timeoutReject;
