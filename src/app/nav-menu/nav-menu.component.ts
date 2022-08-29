@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { faEnvelope, faRocket, faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
-import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { ThemeService } from '../theme.service';
 import { Subscription } from 'rxjs';
 
@@ -15,6 +15,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
   isDark = false;
   faRocket = faRocket;
   faGithub = faGithub;
+  faLinkedin = faLinkedin;
   faEnvelope = faEnvelope;
   faMoon = faMoon;
   faSun = faSun;
