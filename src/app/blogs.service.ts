@@ -32,7 +32,7 @@ export class BlogsService {
     },
     {
       id: 'DeployStaticSite',
-      title: 'How I deployed this website',
+      title: 'How I deployed this website with server side rendering',
       date: '11-07-2022',
       thumbnail: 'website.jpg',
       description: 'Learning best practises for deploying an Angular website with Azure\'s static cloud storage solution',

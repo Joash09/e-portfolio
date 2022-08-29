@@ -2,19 +2,35 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="blog-view/DeployStaticSite#org925cc7c">1. Motivation</a></li>
-<li><a href="blog-view/DeployStaticSite#org1a41773">2. Create Azure Resource</a></li>
-<li><a href="blog-view/DeployStaticSite#org5034cdd">3. Ensure Web app is packaged well</a></li>
-<li><a href="blog-view/DeployStaticSite#org8b87942">4. Tell Azure how to handle routing</a></li>
-<li><a href="blog-view/DeployStaticSite#org7689722">5. Uploading project to Azure resource</a></li>
-<li><a href="blog-view/DeployStaticSite#orgf43b19e">6. Set up Domain</a></li>
-<li><a href="blog-view/DeployStaticSite#org5401c24">7. Link Domain to Azure resource</a></li>
+<li><a href="blog-view/DeployStaticSite#org92f1c38">1. Motivation</a></li>
+<li><a href="blog-view/DeployStaticSite#orgf343c8b">2. Create Azure Resource</a></li>
+<li><a href="blog-view/DeployStaticSite#org522d5ff">3. Server side versus client side rendering and Search Engine Optimization (Optional)</a>
+<ul>
+<li><a href="blog-view/DeployStaticSite#org44b7a8c">3.1. Additional SEO Improvements</a></li>
+<li><a href="blog-view/DeployStaticSite#org895b8e1">3.2. Angular Universal Setup</a>
+<ul>
+<li><a href="blog-view/DeployStaticSite#orga5d7564">3.2.1. Components which only work with client side rendering</a></li>
+<li><a href="blog-view/DeployStaticSite#orgd903371">3.2.2. Pre-render Setup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="blog-view/DeployStaticSite#org1750e28">4. Ensure Web app is well packaged (Optional)</a></li>
+<li><a href="blog-view/DeployStaticSite#org53f8649">5. Tell Azure how to handle routing</a></li>
+<li><a href="blog-view/DeployStaticSite#orgf907fb9">6. Uploading project to Azure resource</a>
+<ul>
+<li><a href="blog-view/DeployStaticSite#orgfc4a63c">6.1. Automated CI</a></li>
+<li><a href="blog-view/DeployStaticSite#orgdea5907">6.2. Manual Deployment</a></li>
+</ul>
+</li>
+<li><a href="blog-view/DeployStaticSite#org7480dba">7. Set up Domain</a></li>
+<li><a href="blog-view/DeployStaticSite#org85c9a33">8. Link Domain to Azure resource</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org925cc7c" class="outline-2">
-<h2 id="org925cc7c"><span class="section-number-2">1.</span> Motivation</h2>
+<div id="outline-container-org92f1c38" class="outline-2">
+<h2 id="org92f1c38"><span class="section-number-2">1.</span> Motivation</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 When I set out to create this website, I wanted to have be able to include webapps within the portfolio itself. I incorrectly thought that this meant I couldn&rsquo;t serve it as a static website, because the term &ldquo;webapps&rdquo; don&rsquo;t sound like static HTML pages. However, in the end these webapps are just JavaScript files which are downloaded to your browser and hence, could very much be served from a simple storage cloud instance. Here are the steps:
@@ -22,23 +38,165 @@ When I set out to create this website, I wanted to have be able to include webap
 </div>
 </div>
 
-<div id="outline-container-org1a41773" class="outline-2">
-<h2 id="org1a41773"><span class="section-number-2">2.</span> Create Azure Resource</h2>
+<div id="outline-container-orgf343c8b" class="outline-2">
+<h2 id="orgf343c8b"><span class="section-number-2">2.</span> Create Azure Resource</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Create a static website storage instance on <a href="https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-how-to?tabs=azure-portal">Azure</a>
 </p>
 <ul class="org-ul">
-<li>The storage instance is made up of &ldquo;blobs.&rdquo; Azure automatically creates a web blob and configure it to be accessible with a &ldquo;ugly&rdquo; default URL.</li>
-<li>You can set the storage account with CI integration if you link your project repository to Azure. Alternatively, you can manually deploy the project with Azure Copy command line <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">tool</a>.</li>
+<li>The storage instance is broken down into &ldquo;blobs&rdquo; or &ldquo;containers.&rdquo; Azure automatically creates a web container and configures it to be accessible with an &ldquo;ugly&rdquo; default URL.</li>
+<li>You can set the storage account with CI integration if you link your project repository to Azure. Alternatively, you can manually deploy the project with the Azure Copy command line <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">tool</a>.</li>
 <li>We will add a custom domain later</li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org5034cdd" class="outline-2">
-<h2 id="org5034cdd"><span class="section-number-2">3.</span> Ensure Web app is packaged well</h2>
+<div id="outline-container-org522d5ff" class="outline-2">
+<h2 id="org522d5ff"><span class="section-number-2">3.</span> Server side versus client side rendering and Search Engine Optimization (Optional)</h2>
 <div class="outline-text-2" id="text-3">
+<p>
+Angular is a Single Page Application (SPA) framework and defaults to client side rendering. Client side rendering is geared towards rendering dynamic content since when a user visits a web application, the JavaScript is first downloaded to the client&rsquo;s browser and it is the client&rsquo;s browser that will render the application by manipulating the DOM. Alternatively, the server can render the application and only send static HTML to the client&rsquo;s browser. Naturally, server side rending is suited for static content. One of the major benefits for this is search engine optimization. Typically search engines have difficulty indexing JavaScript over raw HTML. Furthermore, server side rendering can offer additional performance benefits by pre-rendering pages at build time and serving those on request. Given this website has static blog posts as well as dynamic web apps, I wanted the best of both worlds; which I achieved by adding Angular Universal to my project.
+</p>
+</div>
+
+<div id="outline-container-org44b7a8c" class="outline-3">
+<h3 id="org44b7a8c"><span class="section-number-3">3.1.</span> Additional SEO Improvements</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+Before converting the application to be server-side rendered there are additional steps to aid the search engines&rsquo; web crawlers index our content by adding additional meta information. This meta information includes adding a title, description and meta tags to different components within the application.
+</p>
+<div class="org-src-container">
+<pre class="src src-javascript"><span style="color: #3B6EA8;">import</span> { Title, Meta } from <span style="color: #4F894C;">'@angular/platform-browser'</span>;
+@Component({
+    selector: <span style="color: #4F894C;">'app-blog-view'</span>,
+    templateUrl: <span style="color: #4F894C;">'./blog-view.component.html'</span>,
+    styleUrls: [<span style="color: #4F894C;">'./blog-view.component.css'</span>],
+})
+<span style="color: #3B6EA8;">export</span> <span style="color: #3B6EA8;">class</span> BlogViewComponent <span style="color: #3B6EA8;">implements</span> OnInit {
+
+    constructor(<span style="color: #3B6EA8;">private</span> _metaService: Meta,
+                <span style="color: #3B6EA8;">private</span> _titleService: Title) { }
+
+    ngOnInit(): <span style="color: #3B6EA8;">void</span> {
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">const post = ...</span>
+        <span style="color: #97365B;">this</span>._titleService.setTitle(post.title);
+        <span style="color: #97365B;">this</span>._metaTagService.updateTag({ name: <span style="color: #4F894C;">'date'</span>, content: post.date }, <span style="color: #4F894C;">"name='date'"</span>);
+        <span style="color: #97365B;">this</span>._metaTagService.updateTag({ name: <span style="color: #4F894C;">'description'</span>, content: post.description }, <span style="color: #4F894C;">"name='description'"</span>);
+        <span style="color: #97365B;">this</span>._metaTagService.updateTag({ name: <span style="color: #4F894C;">'keywords'</span>, content: post.keywords.toString() }, <span style="color: #4F894C;">"name='keywords'"</span>);
+        <span style="color: #97365B;">this</span>._metaTagService.updateTag({ name: <span style="color: #4F894C;">'image'</span>, content: <span style="color: #4F894C;">'assets/blog-thumbnails/'</span>+post.thumbnail }, <span style="color: #4F894C;">"name='image'"</span>);
+    }
+}
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org895b8e1" class="outline-3">
+<h3 id="org895b8e1"><span class="section-number-3">3.2.</span> Angular Universal Setup</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+Angular Universal works by creating a Node Express server which will serve our application. The server first serves a server-side rendered version of the application before handing over to the client side rendered version. Thus, with some additional configuration, we can get the best of both worlds.
+</p>
+
+<p>
+After installation of the package, a build, serve and pre-render script are available to us. These scripts replace the typical &ldquo;npm start&rdquo; command. See the automated CI section, for deployment configuration options required for Angular Universal apps. This <a href="https://blog.angular-university.io/angular-universal/">resource</a> is far more thorough in setting up Angular Universal.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">ng add @nguniversal/express-engine <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Angular CLI &gt; 8</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">After the intallation, two scripts become avaialable. See package.json</span>
+npm run build:ssr
+npm run serve:ssr
+npm run prerender
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orga5d7564" class="outline-4">
+<h4 id="orga5d7564"><span class="section-number-4">3.2.1.</span> Components which only work with client side rendering</h4>
+<div class="outline-text-4" id="text-3-2-1">
+<p>
+As mentioned previously, server side rendering is not suited for parts of our application which is dynamic and has high interactivity. We can configure Angular Universal ignore these parts of the application and have them rendered when the client application takes over as before. Angular includes isPlatformBrowser and isPlatformServer helper methods for this purpose. Consider the example below. This component (see template HTML) will only be rendered by client application. Additionally, we can have application logic which can only run on the client application. This is specifically useful for integrating with 3rd party libraries, such as Matter.js as was in my case.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-typescript"><span style="color: #3B6EA8;">import</span> <span style="color: #3B6EA8;">{</span> DOCUMENT, isPlatformBrowser <span style="color: #3B6EA8;">}</span> <span style="color: #3B6EA8;">from</span> <span style="color: #4F894C;">'@angular/common'</span>;
+<span style="color: #3B6EA8;">import</span> <span style="color: #3B6EA8;">{</span> Component, Inject, PLATFORM_ID <span style="color: #3B6EA8;">}</span> <span style="color: #3B6EA8;">from</span> <span style="color: #4F894C;">'@angular/core'</span>;
+
+<span style="color: #29838D;">@Component</span><span style="color: #3B6EA8;">(</span><span style="color: #97365B;">{</span>
+    selector: <span style="color: #4F894C;">'my-component'</span>,
+    template: <span style="color: #4F894C;">'&lt;div *ngIf="isBrowser"&gt;Client side rendered content&lt;/div&gt;'</span>
+<span style="color: #97365B;">}</span><span style="color: #3B6EA8;">)</span>
+<span style="color: #3B6EA8;">export</span> <span style="color: #3B6EA8;">class</span> <span style="color: #9A7500;">MyComponent</span> <span style="color: #3B6EA8;">implements</span> <span style="color: #9A7500;">OnInit</span> <span style="color: #3B6EA8;">{</span>
+
+    isBrowser: <span style="color: #3B6EA8;">boolean</span>;
+
+    <span style="color: #3B6EA8;">constructor</span><span style="color: #97365B;">(</span><span style="color: #29838D;">@Inject</span><span style="color: #4F894C;">(</span>PLATFORM_ID<span style="color: #4F894C;">)</span> <span style="color: #3B6EA8;">private</span> _platformId: <span style="color: #3B6EA8;">string</span><span style="color: #97365B;">)</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">this</span>.isBrowser = <span style="color: #29838D;">isPlatformBrowser</span><span style="color: #4F894C;">(</span><span style="color: #3B6EA8;">this</span>._platformId<span style="color: #4F894C;">)</span>;
+    <span style="color: #97365B;">}</span>
+
+    <span style="color: #29838D;">ngOnInit</span><span style="color: #97365B;">()</span>: <span style="color: #3B6EA8;">void</span> <span style="color: #97365B;">{}</span>
+
+    <span style="color: #29838D;">someMethod</span><span style="color: #97365B;">()</span>: <span style="color: #3B6EA8;">void</span> <span style="color: #97365B;">{</span>
+        <span style="color: #3B6EA8;">if</span> <span style="color: #4F894C;">(</span>!<span style="color: #3B6EA8;">this</span>.isBrowser<span style="color: #4F894C;">)</span> <span style="color: #3B6EA8;">return</span>;
+
+        <span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">... code that makes direct access to DOM</span>
+    <span style="color: #97365B;">}</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgd903371" class="outline-4">
+<h4 id="orgd903371"><span class="section-number-4">3.2.2.</span> Pre-render Setup</h4>
+<div class="outline-text-4" id="text-3-2-2">
+<p>
+By default Angular Universal tries to prerender every URL path. If you have parts of the website you wish to keep dynamic, like mine, you are better off manually defining which URLs you wish to have pre-rendered. Define the routes you want prerendered in the prerender section of your angular.json file as well as disable Angular Universal&rsquo;s default behaviour of guessing other routes to prerender.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-json"><span style="color: #3B6EA8;">"options"</span>: {
+    <span style="color: #3B6EA8;">"routes"</span>: [
+        <span style="color: #4F894C;">"/"</span>,
+        <span style="color: #4F894C;">"/blog-view/WebAssembly"</span>,
+        <span style="color: #4F894C;">"/blog-view/KernelManagement"</span>,
+        <span style="color: #4F894C;">"/blog-view/ChrootAndNspawn"</span>,
+    ],
+    <span style="color: #3B6EA8;">"guessRoutes"</span>: <span style="color: #97365B;">false</span>
+}
+</pre>
+</div>
+
+<p>
+Hopefully, this would be the only other changes you make, however, my application relies on loading HTML blog posts stored in my assets folder using Angular&rsquo;s HTTPClient. From Angular Universal&rsquo;s point of view this looks like an external API call. Secondly, because these assets belong to my project I used a relative URL to find them. However, the Node Express server relies on absolute URLs. This is problematic during the prerendering step and as such relative URLs in the application must change to absolute URLs. For example: <a href="http://localhost:4200/assets/blog-post.html">http://localhost:4200/assets/blog-post.html</a>. Also consider the absolute URL will change, from when I need to prerender the page to when the client application takes over. Using the aforementioned isPlatformServer helper method, I added additional logic as shown below.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-typescript"><span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">...</span>
+<span style="color: #3B6EA8;">let</span> <span style="color: #842879;">path</span> = <span style="color: #4F894C;">''</span>;
+<span style="color: #3B6EA8;">if</span> <span style="color: #3B6EA8;">(</span><span style="color: #29838D;">isPlatformServer</span><span style="color: #97365B;">(</span><span style="color: #3B6EA8;">this</span>._platformId<span style="color: #97365B;">)</span><span style="color: #3B6EA8;">)</span> <span style="color: #3B6EA8;">{</span>
+    path = <span style="color: #4F894C;">'http://localhost:4200/'</span>
+<span style="color: #3B6EA8;">}</span>
+path = path + <span style="color: #4F894C;">'assets/blog-posts/'</span> + id + <span style="color: #4F894C;">'.html'</span>;
+<span style="color: #3B6EA8;">return</span> <span style="color: #3B6EA8;">this</span>._httpClient.<span style="color: #3B6EA8;">get</span><span style="color: #3B6EA8;">(</span>path, <span style="color: #97365B;">{</span>responseType: <span style="color: #4F894C;">"text"</span><span style="color: #97365B;">}</span><span style="color: #3B6EA8;">)</span>;
+<span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">...</span>
+</pre>
+</div>
+
+<p>
+Now notice that during the prerendering phase, a server on port 4200 needs to be running for those assets to be available. Ideally, to make deployment easier, we want to spin up this server as well as prerender our application as a single process. To do this, I copied-pasted a script found in this <a href="https://github.com/angular/universal/issues/2688#issuecomment-1160265010">GitHub issue</a> thread into my project&rsquo;s root folder and call it when building the project for server side rendering. Verify the prerendering step worked by serving your SSR application, disabling JavaScript in your browser and navigating to your specified URLs.
+</p>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org1750e28" class="outline-2">
+<h2 id="org1750e28"><span class="section-number-2">4.</span> Ensure Web app is well packaged (Optional)</h2>
+<div class="outline-text-2" id="text-4">
 <p>
 Before deploying, it is a good idea to ensure the size of the initial web app bundle is not huge. Obviously the bigger it is; the longer the user has to wait for your website to load.
 </p>
@@ -50,18 +208,18 @@ Before deploying, it is a good idea to ensure the size of the initial web app bu
 Budgets will warn you if your app is too big and if you will need to optimize
 </p>
 <div class="org-src-container">
-<pre class="src src-json">   "configurations": {
-     "production": {
-       "budgets": [
+<pre class="src src-json">   <span style="color: #3B6EA8;">"configurations"</span>: {
+     <span style="color: #3B6EA8;">"production"</span>: {
+       <span style="color: #3B6EA8;">"budgets"</span>: [
          {
-           "type": "initial",
-           "maximumWarning": "500kb",
-           "maximumError": "1mb"
+           <span style="color: #3B6EA8;">"type"</span>: <span style="color: #4F894C;">"initial"</span>,
+           <span style="color: #3B6EA8;">"maximumWarning"</span>: <span style="color: #4F894C;">"500kb"</span>,
+           <span style="color: #3B6EA8;">"maximumError"</span>: <span style="color: #4F894C;">"1mb"</span>
          },
          {
-           "type": "anyComponentStyle",
-           "maximumWarning": "2kb",
-           "maximumError": "4kb"
+           <span style="color: #3B6EA8;">"type"</span>: <span style="color: #4F894C;">"anyComponentStyle"</span>,
+           <span style="color: #3B6EA8;">"maximumWarning"</span>: <span style="color: #4F894C;">"2kb"</span>,
+           <span style="color: #3B6EA8;">"maximumError"</span>: <span style="color: #4F894C;">"4kb"</span>
          }
        ],
      }
@@ -91,8 +249,8 @@ The file is included in the dist directory
 In the package.json add the following in the scripts entry. Ensure your path to the stats.json file is correct
 </p>
 <div class="org-src-container">
-<pre class="src src-json">    "scripts": {
-        "analyze": "webpack-bundle-analyzer dist/static-portfolio/stats.json"
+<pre class="src src-json">    <span style="color: #3B6EA8;">"scripts"</span>: {
+        <span style="color: #3B6EA8;">"analyze"</span>: <span style="color: #4F894C;">"webpack-bundle-analyzer dist/static-portfolio/stats.json"</span>
     }
 </pre>
 </div></li>
@@ -108,17 +266,17 @@ Running the analyzer tool will open a web browser tab with a graphical view of w
 </div>
 </div>
 
-<div id="outline-container-org8b87942" class="outline-2">
-<h2 id="org8b87942"><span class="section-number-2">4.</span> Tell Azure how to handle routing</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-org53f8649" class="outline-2">
+<h2 id="org53f8649"><span class="section-number-2">5.</span> Tell Azure how to handle routing</h2>
+<div class="outline-text-2" id="text-5">
 <p>
 In Angular (or any Single Page Application [SPA] project), the routing is handled internally. For instance when navigating to <a href="https://website.com/new-page">https://website.com/new-page</a>, we expect Angular to resolve this internally (i.e. load corresponding components) as opposed to Azure trying to find a new-page.html file to serve to us. To configure Azure to let Angular handle the routing, create a staticwebapp.config.json file in the root directory of the project and add the content below. If not, we&rsquo;ll get 404 errors when navigating manually or refreshing the web page on any route that is not the root URL.
 </p>
 <div class="org-src-container">
 <pre class="src src-json">{
-    "navigationFallback": {
-        "rewrite": "index.html",
-        "exclude": ["/static/images/*.{png,jpg,gif}", "/static/css/*"]
+    <span style="color: #3B6EA8;">"navigationFallback"</span>: {
+        <span style="color: #3B6EA8;">"rewrite"</span>: <span style="color: #4F894C;">"index.html"</span>,
+        <span style="color: #3B6EA8;">"exclude"</span>: [<span style="color: #4F894C;">"/static/images/*.{png,jpg,gif}"</span>, <span style="color: #4F894C;">"/static/css/*"</span>]
     },
 }
 </pre>
@@ -126,11 +284,39 @@ In Angular (or any Single Page Application [SPA] project), the routing is handle
 </div>
 </div>
 
-<div id="outline-container-org7689722" class="outline-2">
-<h2 id="org7689722"><span class="section-number-2">5.</span> Uploading project to Azure resource</h2>
-<div class="outline-text-2" id="text-5">
+<div id="outline-container-orgf907fb9" class="outline-2">
+<h2 id="orgf907fb9"><span class="section-number-2">6.</span> Uploading project to Azure resource</h2>
+<div class="outline-text-2" id="text-6">
+</div>
+<div id="outline-container-orgfc4a63c" class="outline-3">
+<h3 id="orgfc4a63c"><span class="section-number-3">6.1.</span> Automated CI</h3>
+<div class="outline-text-3" id="text-6-1">
 <p>
-If you created your Azure resource with CI, this step is unnecessary. To deploy you would just push to your master/main branch. If manually deploying:
+If you created your Azure resource with CI, then your project is automatically deployed when you push to your master/main branch. Azure will automatically create a .github/workflows/*.yml file for you. This .yml file provides configuration options for your deployment pipeline. In a nutshell it uses the <a href="https://github.com/microsoft/Oryx">Oryx</a> build system which automatically detects your project (e.g. looks for package.json) and applies the build and run commands (e.g. npm run build).
+</p>
+
+<p>
+The following steps are only necessary when deploying with Angular Universal. Depending on your application needs, update &ldquo;app<sub>build</sub><sub>command</sub>&rdquo; with it&rsquo;s appropriate build command. Recall for my app to load certain local assets, we introduced a script which will spin up a serve as well as run the prerender step in the same process. Hence my workflow configuration is as follows. Alternatively you may just use &ldquo;npm run build:ssr&rdquo; or &ldquo;npm run prerender&rdquo;.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">###### </span><span style="color: #8b94a5;">Repository/Build Configurations - Configure these values to match your app requirements. ######</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig</span>
+app_location: <span style="color: #4F894C;">"/"</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">App source code path</span>
+api_location: <span style="color: #4F894C;">""</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Api source code path - optional</span>
+output_location: <span style="color: #4F894C;">"dist/static-portfolio/browser"</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Built app content directory - optional</span>
+app_build_command: <span style="color: #4F894C;">"npm run prerender"</span>
+<span style="color: #8b94a5;">###### </span><span style="color: #8b94a5;">End of Repository/Build Configurations ######</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgdea5907" class="outline-3">
+<h3 id="orgdea5907"><span class="section-number-3">6.2.</span> Manual Deployment</h3>
+<div class="outline-text-3" id="text-6-2">
+<p>
+If manually deploying:
 </p>
 <ol class="org-ol">
 <li>Install Azure Copy command line <a href="https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">tool</a>. Simply run from the extracted tar</li>
@@ -153,10 +339,11 @@ Build project and upload
 </ol>
 </div>
 </div>
+</div>
 
-<div id="outline-container-orgf43b19e" class="outline-2">
-<h2 id="orgf43b19e"><span class="section-number-2">6.</span> Set up Domain</h2>
-<div class="outline-text-2" id="text-6">
+<div id="outline-container-org7480dba" class="outline-2">
+<h2 id="org7480dba"><span class="section-number-2">7.</span> Set up Domain</h2>
+<div class="outline-text-2" id="text-7">
 <p>
 Buy a custom domain
 </p>
@@ -169,9 +356,9 @@ Buy a custom domain
 </div>
 </div>
 
-<div id="outline-container-org5401c24" class="outline-2">
-<h2 id="org5401c24"><span class="section-number-2">7.</span> Link Domain to Azure resource</h2>
-<div class="outline-text-2" id="text-7">
+<div id="outline-container-org85c9a33" class="outline-2">
+<h2 id="org85c9a33"><span class="section-number-2">8.</span> Link Domain to Azure resource</h2>
+<div class="outline-text-2" id="text-8">
 <ol class="org-ol">
 <li>Once you have your custom domain, it needs to be linked to your storage account
 <ul class="org-ul">
