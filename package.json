@@ -11,7 +11,8 @@
     "dev:ssr": "ng run static-portfolio:serve-ssr",
     "serve:ssr": "node dist/static-portfolio/server/main.js",
     "build:ssr": "ng build && ng run static-portfolio:server",
-    "prerender": "ng run static-portfolio:prerender"
+    "prerender": "ng run static-portfolio:prerender",
+    "build:azure": "node prerender-script.ts"
   },
   "private": true,
   "dependencies": {
