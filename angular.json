@@ -55,6 +55,14 @@
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "outputHashing": "all"
             },
             "development": {
@@ -146,8 +154,20 @@
           "builder": "@nguniversal/builders:prerender",
           "options": {
             "routes": [
-              "/"
-            ]
+              "/",
+              "/blog-view/WebAssembly",
+              "/blog-view/KernelManagement",
+              "/blog-view/ChrootAndNspawn",
+              "/blog-view/DeployStaticSite",
+              "/blog-view/PostgreSQLEnum",
+              "/blog-view/NLayerApplications",
+              "/blog-view/Microblaze",
+              "/blog-view/DockerDevelopmentEnvironment",
+              "/blog-view/IPFS",
+              "/blog-view/Fallacies",
+              "/blog-view/Bonds"
+            ],
+            "guessRoutes": false
           },
           "configurations": {
             "production": {

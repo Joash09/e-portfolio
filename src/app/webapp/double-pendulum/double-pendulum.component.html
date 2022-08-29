@@ -1,3 +1,4 @@
+<ng-container *ngIf="isBrowser">
 <p>After watching an interesting <a href="https://www.youtube.com/watch?v=fDek6cYijxI">YouTube video</a> on chaotic systems by Veritasium and wanted to recreate the double pendulum simulation for myself.
 	It was interesting to see how a seemingly simple system could produce such wide range of different behaviours with slight input variations.
 	I figured this short project would be good learning experiment into simulating physics in the browser.
@@ -5,6 +6,12 @@
 	The code is also provided. </p>
 
 <div class="container text-center">
+	<div *ngIf="!isRunning; else elseBlock">
+		<button class="btn btn-primary" (click)="initDoublePendulum()">Start Simulation</button>
+	</div>
+	<ng-template #elseBlock>
+		<button class="btn btn-danger" (click)="stopSimulation()">Stop Simulation</button>
+	</ng-template>
 	<div id="physicsRenderComponent"></div>
 </div>
 
@@ -94,9 +101,11 @@ Events.on(render, 'afterRender', function() {
 // Finally add everything to the world and run
 World.add(engine.world, [chain, mouseConstraint]);
 
-Engine.run(engine);
+Runner.run(engine);
 Render.run(render);
 }
 "}}
 </code>
 </pre>
+
+</ng-container>

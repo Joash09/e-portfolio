@@ -10,6 +10,7 @@ import { NavMenuComponent } from './nav-menu/nav-menu.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { BlogViewComponent } from './blog-view/blog-view.component';
 
+
 @NgModule({
   declarations: [
     AppComponent,

@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@angular/common';
-import { Component, OnDestroy, OnInit, Inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { Engine, Render, Constraint, Mouse, MouseConstraint, Bodies, Composites, Composite, Body, Events, Vector, Runner, World} from 'matter-js';
 
 @Component({
@@ -12,20 +12,28 @@ export class DoublePendulumComponent implements OnInit, OnDestroy {
 	engine!: Engine;
 	render!: Render;
 
-	constructor(@Inject(DOCUMENT) private _document: Document) {
+	isRunning = false;
+	isBrowser: boolean;
 
+	constructor(
+		@Inject(PLATFORM_ID) private _platformId: string,
+		@Inject(DOCUMENT) private _document: Document) {
+		this.isBrowser = isPlatformBrowser(this._platformId);
 	}
 
-	ngOnInit() {
-		this.initDoublePendulum();
-	}
+	ngOnInit() { }
 
 	ngOnDestroy() {
-		this.stopSimulation();
-		console.log('Destroyed');
+
+		if (this.isRunning) {
+			this.stopSimulation();
+			console.log('Destroyed');
+		}
 	}
 
 	initDoublePendulum() {
+
+		if (!this.isBrowser) return;
 
 		// Set up the basic engine and render components
 		this.engine = Engine.create();
@@ -103,11 +111,16 @@ export class DoublePendulumComponent implements OnInit, OnDestroy {
 		Composite.add(this.engine.world, mouseConstraint);
 		// World.add(engine.world, [chain, mouseConstraint]);
 
+		this.isRunning = true;
 		Render.run(this.render);
-		Engine.run(this.engine);
+		Runner.run(this.engine);
 	}
 
 	stopSimulation(): void {
+
+		if (!this.isBrowser) return;
+
+		this.isRunning = false;
 		Render.stop(this.render);
 		World.clear(this.engine.world, false);
 		Engine.clear(this.engine);

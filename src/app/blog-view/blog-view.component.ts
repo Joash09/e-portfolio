@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { concatMap, map, tap, Subscription } from 'rxjs';
@@ -6,6 +6,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { Title, Meta } from '@angular/platform-browser';
 import { ThemeService } from '../theme.service';
 import { BlogsService } from '../blogs.service';
+import { isPlatformServer } from '@angular/common';
 
 @Component({
   selector: 'app-blog-view',
@@ -26,13 +27,20 @@ export class BlogViewComponent implements OnInit, OnDestroy {
 
     private _blogService: BlogsService,
     private _titleService: Title,
-    private _metaTagService: Meta
+    private _metaTagService: Meta,
+
+    @Inject(PLATFORM_ID) private _platformId:  string
   ) { }
 
   ngOnInit(): void {
 
-    const posts = this._blogService.BlogPosts;
+    this.subscriptions.add(this._themeService.isDarkMode$().subscribe((result: boolean) => {
+      this.isDark = result;
+    }));
 
+    // if (!isPlatformServer(this._platformId)) return;
+
+    const posts = this._blogService.BlogPosts;
     this.subscriptions.add(this._route.params.pipe(
       map(params => params['id']),
 
@@ -51,15 +59,15 @@ export class BlogViewComponent implements OnInit, OnDestroy {
 
       // Load HTML
       concatMap((id: string) => {
-        const path = 'assets/blog-posts/' + id + '.html';
+        let path = '';
+        if (isPlatformServer(this._platformId)) {
+          path = 'http://localhost:4200/'
+        }
+        path = path + 'assets/blog-posts/' + id + '.html';
         return this._httpClient.get(path, {responseType: "text"});
       })
     ).subscribe((response) => {
       this.content = this._sanitizer.bypassSecurityTrustHtml(response);
-    }));
-
-    this.subscriptions.add(this._themeService.isDarkMode$().subscribe((result: boolean) => {
-      this.isDark = result;
     }));
 
   }
