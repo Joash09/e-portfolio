@@ -11,7 +11,7 @@ async function run() {
     try {
 
         console.log("Running Angular server");
-        var proc = require('child_process').spawn('ng', ['serve']);
+        var proc = require('child_process').spawn('ng', ['serve', '--port', '3000']);
         await sleep(20000)
 
         console.log("Running prerender");

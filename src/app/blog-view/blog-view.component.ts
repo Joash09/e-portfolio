@@ -61,7 +61,7 @@ export class BlogViewComponent implements OnInit, OnDestroy {
       concatMap((id: string) => {
         let path = '';
         if (isPlatformServer(this._platformId)) {
-          path = 'http://localhost:4200/'
+          path = 'http://localhost:3000/'
         }
         path = path + 'assets/blog-posts/' + id + '.html';
         return this._httpClient.get(path, {responseType: "text"});
