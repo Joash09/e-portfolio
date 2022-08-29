@@ -2,16 +2,16 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="blog-view/KernelManagement#orgb17952d">1. Basic Kernel Upgrade</a></li>
-<li><a href="blog-view/KernelManagement#orgd13bb91">2. Why a 2nd configuration for NVIDIA drivers</a></li>
-<li><a href="blog-view/KernelManagement#org02cd9bc">3. Creating a 2nd kernel configuration</a></li>
-<li><a href="blog-view/KernelManagement#orgf6950c1">4. Notes on managing a second kernel configuration</a></li>
+<li><a href="blog-view/KernelManagement#org10f2b67">1. Basic Kernel Upgrade</a></li>
+<li><a href="blog-view/KernelManagement#org8ce754a">2. Why a 2nd configuration for NVIDIA drivers</a></li>
+<li><a href="blog-view/KernelManagement#org42ea142">3. Creating a 2nd kernel configuration</a></li>
+<li><a href="blog-view/KernelManagement#org64bfd63">4. Notes on managing a second kernel configuration</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-orgb17952d" class="outline-2">
-<h2 id="orgb17952d"><span class="section-number-2">1.</span> Basic Kernel Upgrade</h2>
+<div id="outline-container-org10f2b67" class="outline-2">
+<h2 id="org10f2b67"><span class="section-number-2">1.</span> Basic Kernel Upgrade</h2>
 <div class="outline-text-2" id="text-1">
 <div class="org-src-container">
 <pre class="src src-bash">
@@ -40,17 +40,17 @@ eselect kernel list
 </div>
 </div>
 
-<div id="outline-container-orgd13bb91" class="outline-2">
-<h2 id="orgd13bb91"><span class="section-number-2">2.</span> Why a 2nd configuration for NVIDIA drivers</h2>
+<div id="outline-container-org8ce754a" class="outline-2">
+<h2 id="org8ce754a"><span class="section-number-2">2.</span> Why a 2nd configuration for NVIDIA drivers</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-NVIDIA drivers are proprietary. Unlike most open source drivers they are not built into the kernel but instead loaded as a kernel module at start up. (Loadable modules is a kernel feature that must be configured) The kernel interacts with driver modules through an Application Binary Interface (ABI). However when upgrading the kernel, new kernel configurations may change the ABI, meaning NVIDIA will need to update the drivers accordingly. The community can&rsquo;t do it since NVIDIA drivers are (again) proprietary software. As a result, it may be worth keeping a second kernel in case the NVIDIA drivers stop working with the current kernel version. Alternatively, you could refrain from updating the kernel if it will break the NVIDIA drivers and wait until NVIDIA updates the drivers. I decided to have 2 configurations, because nothing worthwhile came easy.
+NVIDIA drivers are proprietary. Unlike most open source drivers they are not built into the kernel but instead loaded as a kernel module at start up. (Loadable modules is a kernel feature that must be configured). The kernel interacts with driver modules through an Application Binary Interface (ABI). However when upgrading the kernel, new kernel configurations may change the ABI, meaning NVIDIA will need to update the drivers accordingly. The community can&rsquo;t do it since NVIDIA drivers are (again) proprietary software. As a result, it may be worth keeping a second kernel in case the NVIDIA drivers stop working with the current kernel version. Alternatively, you could refrain from updating the kernel if it will break the NVIDIA drivers and wait until NVIDIA updates the drivers. I decided to have 2 configurations, because nothing worthwhile came easy.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org02cd9bc" class="outline-2">
-<h2 id="org02cd9bc"><span class="section-number-2">3.</span> Creating a 2nd kernel configuration</h2>
+<div id="outline-container-org42ea142" class="outline-2">
+<h2 id="org42ea142"><span class="section-number-2">3.</span> Creating a 2nd kernel configuration</h2>
 <div class="outline-text-2" id="text-3">
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #9A7500;">cd</span> /usr/src
@@ -69,8 +69,8 @@ How to configure your kernel to support NVIDIA drivers is well <a href="https://
 </div>
 </div>
 
-<div id="outline-container-orgf6950c1" class="outline-2">
-<h2 id="orgf6950c1"><span class="section-number-2">4.</span> Notes on managing a second kernel configuration</h2>
+<div id="outline-container-org64bfd63" class="outline-2">
+<h2 id="org64bfd63"><span class="section-number-2">4.</span> Notes on managing a second kernel configuration</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 In my system, almost all packages are built from source, unlike the more commonly installing prebuilt binaries. Certain software packages are built against the current kernel which the package manager finds in /usr/src/linux directory. The NVIDIA drivers are a primary example of this. A upgrade flow, that works for me is as follows:

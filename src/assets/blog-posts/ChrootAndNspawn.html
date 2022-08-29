@@ -2,32 +2,32 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="blog-view/ChrootAndNspawn#org9443513">1. Motivation</a></li>
-<li><a href="blog-view/ChrootAndNspawn#orgb52cc60">2. chroot</a>
+<li><a href="blog-view/ChrootAndNspawn#org6859e8f">1. Motivation</a></li>
+<li><a href="blog-view/ChrootAndNspawn#orgf059970">2. chroot</a>
 <ul>
-<li><a href="blog-view/ChrootAndNspawn#org16add08">2.1. Steps to create chroot environment</a></li>
+<li><a href="blog-view/ChrootAndNspawn#org5b11c6c">2.1. Steps to create chroot environment</a></li>
 </ul>
 </li>
-<li><a href="blog-view/ChrootAndNspawn#org3f31007">3. systemd-nspawn (chroot on steroids)</a>
+<li><a href="blog-view/ChrootAndNspawn#orgc120d78">3. systemd-nspawn (chroot on steroids)</a>
 <ul>
-<li><a href="blog-view/ChrootAndNspawn#org88d3c88">3.1. Steps to create systemd-nspawn container</a></li>
-<li><a href="blog-view/ChrootAndNspawn#orgd727536">3.2. Display Server Options</a>
+<li><a href="blog-view/ChrootAndNspawn#org5e8418f">3.1. Steps to create systemd-nspawn container</a></li>
+<li><a href="blog-view/ChrootAndNspawn#org57ef187">3.2. Display Server Options</a>
 <ul>
-<li><a href="blog-view/ChrootAndNspawn#org56a752f">3.2.1. xhost</a></li>
-<li><a href="blog-view/ChrootAndNspawn#org125bfbc">3.2.2. xephyr</a></li>
+<li><a href="blog-view/ChrootAndNspawn#orgac6c391">3.2.1. xhost</a></li>
+<li><a href="blog-view/ChrootAndNspawn#org1e3cc8e">3.2.2. xephyr</a></li>
 </ul>
 </li>
-<li><a href="blog-view/ChrootAndNspawn#orgd79fe0f">3.3. Final start up script and container options</a></li>
+<li><a href="blog-view/ChrootAndNspawn#org50901e4">3.3. Final start up script and container options</a></li>
 </ul>
 </li>
-<li><a href="blog-view/ChrootAndNspawn#orgd0fa832">4. Updating Kernels, Drivers inside a systemd-nspawn container</a></li>
-<li><a href="blog-view/ChrootAndNspawn#org6205d58">5. Final Thoughts</a></li>
+<li><a href="blog-view/ChrootAndNspawn#orge173987">4. Updating Kernels, Drivers inside a systemd-nspawn container</a></li>
+<li><a href="blog-view/ChrootAndNspawn#org8fe0bed">5. Final Thoughts</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org9443513" class="outline-2">
-<h2 id="org9443513"><span class="section-number-2">1.</span> Motivation</h2>
+<div id="outline-container-org6859e8f" class="outline-2">
+<h2 id="org6859e8f"><span class="section-number-2">1.</span> Motivation</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 Gentoo is a Linux distribution where you manage everything about system. So far this year I have been using it to learn more about the Linux ecosystem the hard way. A good example of this is when I wanted to install Steam and NVIDIA drivers without interfering with my main system. As it stands, the NVIDIA drivers were installed as kernel modules against a second kernel. This process is documented on the Gentoo Wiki. The next step is to create an isolated Steam installation. The first option is to use containers with Docker, however Steam does not provide an official Docker image. Second option is something like Flatpak, but that would come with needing to rebuild my kernel to support Flatpak. Additionally, I won&rsquo;t use Flatpak for anything else so this seems unnecessary. Thus we arrive at building a chroot environment. Chroot is a builtin minimal tool which provides the level of isolation I want without the overhead of a full container.
@@ -35,16 +35,16 @@ Gentoo is a Linux distribution where you manage everything about system. So far 
 </div>
 </div>
 
-<div id="outline-container-orgb52cc60" class="outline-2">
-<h2 id="orgb52cc60"><span class="section-number-2">2.</span> chroot</h2>
+<div id="outline-container-orgf059970" class="outline-2">
+<h2 id="orgf059970"><span class="section-number-2">2.</span> chroot</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Almost all developers use containers within their development and production workflows. It is well understood containers provide an isolated environment with is own file structure and its own operating system. What&rsquo;s lesser known is if we wanted to just isolate the file directory we can do so without Docker. The chroot environment still uses the same operating system as the host system but cannot access files outside its own file directory.
 </p>
 </div>
 
-<div id="outline-container-org16add08" class="outline-3">
-<h3 id="org16add08"><span class="section-number-3">2.1.</span> Steps to create chroot environment</h3>
+<div id="outline-container-org5b11c6c" class="outline-3">
+<h3 id="org5b11c6c"><span class="section-number-3">2.1.</span> Steps to create chroot environment</h3>
 <div class="outline-text-3" id="text-2-1">
 <p>
 The steps to create a chroot environment are outlined on <a href="https:https://wiki.gentoo.org/wiki/Chroot">Gentoo Wiki</a>, so I don&rsquo;t want to copy paste it here. However, at a high level they are:
@@ -79,20 +79,20 @@ Mounting and unmounting the system directories is the most tedious process and o
 </div>
 </div>
 
-<div id="outline-container-org3f31007" class="outline-2">
-<h2 id="org3f31007"><span class="section-number-2">3.</span> systemd-nspawn (chroot on steroids)</h2>
+<div id="outline-container-orgc120d78" class="outline-2">
+<h2 id="orgc120d78"><span class="section-number-2">3.</span> systemd-nspawn (chroot on steroids)</h2>
 <div class="outline-text-2" id="text-3">
 <p>
-Most Linux tinkers have heard of systemd. It is the init system widely used Linux distro like Canonical&rsquo;s Ubuntu. As the name suggests the init system is the first program the kernel loads. The init system is responsible for managing all the services and processes started by the user however systemd also offers other tools including system logging (journalctl) and as we will discuss now systemd-nspawn.
+Most Linux tinkers have heard of systemd. It is the init system widely used Linux distro like Canonical&rsquo;s Ubuntu. As the name suggests the init system is the first program the kernel loads. The init system is responsible for managing all the services and processes started by the user. systemd also offers other tools including system logging (journalctl) and, as we will discuss now, systemd-nspawn.
 </p>
 
 <p>
-Systemd-nspawn actually offers lightweight containers for you. Unlike the chroot jail, processes run within the nspawn container are actually isolated from the main system (i.e. PID 1 in container is different to PID 1 on the host and yes, you can have a separate init system within the nspawn container). I was drawn to nspawn because it handles the process of (un)mounting the required directories for you. It also offers additional protection in this regard as the container cannot change the /proc or /sys directories and mount private /dev and /run directories not accessible from outside the container.
+Systemd-nspawn offers a simple way to create lightweight containers for you. Unlike the chroot jail, processes run within the nspawn container are isolated from the main system (i.e. PID 1 in container is different to PID 1 on the host and yes, you can have a separate init system within the nspawn container). I was drawn to nspawn because it handles the process of (un)mounting the required directories for you. It also offers additional protection in this regard as the container cannot change the /proc or /sys directories or mount private /dev and /run directories which are meant to be inaccessible from outside the container.
 </p>
 </div>
 
-<div id="outline-container-org88d3c88" class="outline-3">
-<h3 id="org88d3c88"><span class="section-number-3">3.1.</span> Steps to create systemd-nspawn container</h3>
+<div id="outline-container-org5e8418f" class="outline-3">
+<h3 id="org5e8418f"><span class="section-number-3">3.1.</span> Steps to create systemd-nspawn container</h3>
 <div class="outline-text-3" id="text-3-1">
 <ol class="org-ol">
 <li>Create directory for chroot environment</li>
@@ -108,16 +108,16 @@ Enter environment
 </div>
 </div>
 
-<div id="outline-container-orgd727536" class="outline-3">
-<h3 id="orgd727536"><span class="section-number-3">3.2.</span> Display Server Options</h3>
+<div id="outline-container-org57ef187" class="outline-3">
+<h3 id="org57ef187"><span class="section-number-3">3.2.</span> Display Server Options</h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 The were additional things I needed to take note of when using nspawn for running Steam. To display applications from the container there are two options available.
 </p>
 </div>
 
-<div id="outline-container-org56a752f" class="outline-4">
-<h4 id="org56a752f"><span class="section-number-4">3.2.1.</span> xhost</h4>
+<div id="outline-container-orgac6c391" class="outline-4">
+<h4 id="orgac6c391"><span class="section-number-4">3.2.1.</span> xhost</h4>
 <div class="outline-text-4" id="text-3-2-1">
 <p>
 xhost is an additional package that allows local connections to connect to the host display server. Although this is a simple solution, it poses a security threat. xhost can grant anyone access to the display server without authentication. From there, an attacker could run key logger or other malicious software. Steps for this route is to install the xhost package and run the following command:
@@ -129,8 +129,8 @@ xhost is an additional package that allows local connections to connect to the h
 </div>
 </div>
 
-<div id="outline-container-org125bfbc" class="outline-4">
-<h4 id="org125bfbc"><span class="section-number-4">3.2.2.</span> xephyr</h4>
+<div id="outline-container-org1e3cc8e" class="outline-4">
+<h4 id="org1e3cc8e"><span class="section-number-4">3.2.2.</span> xephyr</h4>
 <div class="outline-text-4" id="text-3-2-2">
 <p>
 Alternatively, Xephyr is a compile option in the Xorg package which creates nested X display environments. A single command can then spin up a new display (e.g. named &ldquo;:1&rdquo;) and we can specify which display the container should use (i.e. DISPLAY=:1). This, I believe, is a more secure approach and is what I used in my final setup.
@@ -148,8 +148,8 @@ systemd-nspawn <span style="color: #4F894C;">\</span>
 </div>
 </div>
 
-<div id="outline-container-orgd79fe0f" class="outline-3">
-<h3 id="orgd79fe0f"><span class="section-number-3">3.3.</span> Final start up script and container options</h3>
+<div id="outline-container-org50901e4" class="outline-3">
+<h3 id="org50901e4"><span class="section-number-3">3.3.</span> Final start up script and container options</h3>
 <div class="outline-text-3" id="text-3-3">
 <p>
 Similarly to the display server, for audio I needed to link the host pulse server instance to the container. There was also a huge bunch of /dev (device) files which needed to be linked for NVIDIA drivers to work. Lastly I also had to bind the directory with all my steam games.
@@ -194,8 +194,8 @@ systemd-nspawn <span style="color: #4F894C;">\</span>
 </div>
 </div>
 
-<div id="outline-container-orgd0fa832" class="outline-2">
-<h2 id="orgd0fa832"><span class="section-number-2">4.</span> Updating Kernels, Drivers inside a systemd-nspawn container</h2>
+<div id="outline-container-orge173987" class="outline-2">
+<h2 id="orge173987"><span class="section-number-2">4.</span> Updating Kernels, Drivers inside a systemd-nspawn container</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 It is apparent that nspawn containers do not are not running their own kernel. However, steam requires a the built NVIDIA drivers within the container. Furthermore, the NVIDIA drivers are built against the kernel. To ensure everything matches between the host system and the container, first copy the kernel sources from the host system to the container. Ensure the /usr/src/linux directory is linked correctly to this copied version (use eselect tool if on Gentoo). Ensure the NVIDIA driver version in the container matches the host system. (Mask the correct version if on Gentoo).
@@ -203,8 +203,8 @@ It is apparent that nspawn containers do not are not running their own kernel. H
 </div>
 </div>
 
-<div id="outline-container-org6205d58" class="outline-2">
-<h2 id="org6205d58"><span class="section-number-2">5.</span> Final Thoughts</h2>
+<div id="outline-container-org8fe0bed" class="outline-2">
+<h2 id="org8fe0bed"><span class="section-number-2">5.</span> Final Thoughts</h2>
 <div class="outline-text-2" id="text-5">
 <p>
 Containers are a great way to isolate applications from the rest of the system. I have created containers to isolate Steam and Discord due to the size and specific demands of their dependencies. These demands include limiting certain versions of other libraries and just causes greater risk of breaking my system later. Of course, mainstream options like Flatpak are available and possibly easier to use; however I enjoyed using these more minimal, first-principals approaches.

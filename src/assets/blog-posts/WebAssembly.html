@@ -2,39 +2,39 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="blog-view/WebAssembly#org18645cf">1. WebAssembly: Native performance in the browser</a></li>
-<li><a href="blog-view/WebAssembly#org475a07b">2. Building WebAssembly byte code</a></li>
-<li><a href="blog-view/WebAssembly#org8401074">3. Integrating WebAssembly into Angular project</a>
+<li><a href="blog-view/WebAssembly#org367fe55">1. WebAssembly: Native performance in the browser</a></li>
+<li><a href="blog-view/WebAssembly#org2d27368">2. Building WebAssembly byte code</a></li>
+<li><a href="blog-view/WebAssembly#orgc94b120">3. Integrating WebAssembly into Angular project</a>
 <ul>
-<li><a href="blog-view/WebAssembly#org80d41ad">3.1. Relationship between .js and .wasm files</a></li>
-<li><a href="blog-view/WebAssembly#org4159ff8">3.2. Component Source code</a></li>
-<li><a href="blog-view/WebAssembly#org37c8bc1">3.3. Changing default IO behaviours</a></li>
+<li><a href="blog-view/WebAssembly#org26d7635">3.1. Relationship between .js and .wasm files</a></li>
+<li><a href="blog-view/WebAssembly#orgda8d4d9">3.2. Component Source code</a></li>
+<li><a href="blog-view/WebAssembly#org1295cf9">3.3. Changing default IO behaviours</a></li>
 </ul>
 </li>
-<li><a href="blog-view/WebAssembly#orgaacf4b2">4. Closing thoughts</a></li>
-<li><a href="blog-view/WebAssembly#org3200a08">5. Additional Resources</a></li>
+<li><a href="blog-view/WebAssembly#org8c63204">4. Closing thoughts</a></li>
+<li><a href="blog-view/WebAssembly#orgbbb5f4c">5. Additional Resources</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org18645cf" class="outline-2">
-<h2 id="org18645cf"><span class="section-number-2">1.</span> WebAssembly: Native performance in the browser</h2>
+<div id="outline-container-org367fe55" class="outline-2">
+<h2 id="org367fe55"><span class="section-number-2">1.</span> WebAssembly: Native performance in the browser</h2>
 <div class="outline-text-2" id="text-1">
 <p>
-You can&rsquo;t go long in web development before you here of web assembly (WASM) and the performance benefits it brings to the browser. Additionally, WebAssembly also provides an avenue for increasing the portability to existing code bases, similar to Docker, given the wide availability and security of the browser&rsquo;s execution environment. The best way to evaluate these claims is by trying it out for myself.
+You can&rsquo;t go long in web development before you hear of web assembly (WASM) and the performance benefits it brings to the browser. Additionally, WebAssembly also provides an avenue for increasing the portability to existing code bases, similar to Docker, given the wide availability and security of the browser&rsquo;s execution environment. The best way to evaluate these claims is by trying it out for myself.
 </p>
 
 <p>
-Writing web assembly starts with the Emscripten project. Emscripten compiles C or C++ to WebAssembly byte code and can be a drop in replacement for GCC. Not too long ago, I wrote a Lisp tutorial with the aid of a <a href="https:https://buildyourownlisp.com/contents">tutorial</a>. The interpreter was written in C but it would be cool if I could showcase it along with my other web app demos. The main function of the interpreter is a simple while loop which prompts the user write &ldquo;Lisp&rdquo; code and then evaluates immediately, similarly to running a Python prompt. After evaluation, the program will print the return value or, if an error occurred, the error message. This is not an API project which exposes functions which could be called from the Angular app directly. While this functionality is possible, it something to be investigated later. For now we only want a program with a simple loop which accepts input and returns some processed output.
+Writing web assembly starts with the Emscripten project. Emscripten compiles C or C++ to WebAssembly byte code and can be a drop in replacement for GCC. Not too long ago, I wrote a Lisp tutorial with the aid of this <a href="https:https://buildyourownlisp.com/contents">tutorial</a>. The interpreter was written in C. It would be cool if I could showcase it along with my other web app demos. The main function of the interpreter is a simple while loop which prompts the user write &ldquo;Lisp&rdquo; code and then evaluates immediately, similarly to running a Python prompt. After evaluation, the program will print the return value or, if an error occurred, the error message. This is not an API project which exposes functions which could be called from the Angular app directly. While this functionality is possible, it something to be investigated later. For now we only want a program with a simple loop which accepts input and returns some processed output.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org475a07b" class="outline-2">
-<h2 id="org475a07b"><span class="section-number-2">2.</span> Building WebAssembly byte code</h2>
+<div id="outline-container-org2d27368" class="outline-2">
+<h2 id="org2d27368"><span class="section-number-2">2.</span> Building WebAssembly byte code</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-Installing Emscripten is simple by following the online <a href="https://emscripten.org/docs/getting_started/downloads.html">documentation</a>. To build the project with emcc instead of GCC, I could just replace the CC variable in my Makefile however, it is important to note, Emscripten runs in a sandbox. This means external libraries utilized by the program cannot be dynamically linked since these libraries are not available in the sandbox. This is worth noting since my program dynamically links the readline program (LDFLAGS=-lreadline). A simple solution to begin this journey is to compile readline dependency and use standard library function &ldquo;fgets&rdquo; instead. If the project does have additional dependencies which need to be included, there is a mechanism to also convert them into WebAssembly modules. However, we will see later that even if we were able to compile with the readline dependency we would still need to remove it as a dependency when targeting the browser given the browser&rsquo;s asynchronous behaviour.
+Installing Emscripten is simple by following the online <a href="https://emscripten.org/docs/getting_started/downloads.html">documentation</a>. To build the project with emcc instead of GCC, I could just replace the CC variable in my Makefile however, it is important to note, Emscripten runs in a sandbox. This means external libraries utilized by the program cannot be dynamically linked since these libraries are not available in the sandbox. This is worth noting since my program dynamically links the readline program (LDFLAGS=-lreadline). A simple solution to begin this journey is to remove the readline dependency and instead use the standard library function &ldquo;fgets&rdquo; instead. If the project does have additional dependencies which must be included, there is a mechanism to also convert them into WebAssembly modules. However, we will see later that even if we were able to compile with the readline dependency as a WebAssembly module, we would still need to remove it as a dependency when targeting the browser given the browser&rsquo;s asynchronous behaviour.
 </p>
 
 <p>
@@ -64,27 +64,27 @@ You&rsquo;ll notice when running the web server, our fgets command gets mapped t
 </div>
 </div>
 
-<div id="outline-container-org8401074" class="outline-2">
-<h2 id="org8401074"><span class="section-number-2">3.</span> Integrating WebAssembly into Angular project</h2>
+<div id="outline-container-orgc94b120" class="outline-2">
+<h2 id="orgc94b120"><span class="section-number-2">3.</span> Integrating WebAssembly into Angular project</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 First generate an Angular component for our WebAssembly program to run. Copy the .js and .wasm to a new folder in your assets directory. The Angular component will load the script by creating a HTMLScriptElement and append it to body of the DOM. But before that, we must understand what these .js and .wasm files are.
 </p>
 </div>
 
-<div id="outline-container-org80d41ad" class="outline-3">
-<h3 id="org80d41ad"><span class="section-number-3">3.1.</span> Relationship between .js and .wasm files</h3>
+<div id="outline-container-org26d7635" class="outline-3">
+<h3 id="org26d7635"><span class="section-number-3">3.1.</span> Relationship between .js and .wasm files</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 The .js file is a sort of glue code which will load and run our .wasm for us. The primary structure of the .js file is a Module declaration (declared at the top of the file). The .js file is cleverly designed to allow us to overload some of the Module&rsquo;s properties which effects the behaviour of how the .wasm is run. This is accomplished by first checking to see if any variable with name Module is defined and overload properties where applicable. If no Module variable is defined then it&rsquo;ll create one with default behaviours. For this project the primary interest of the module is to overload the print function, because we don&rsquo;t want to be printing to the browser console but instead have IO implemented with HTML elements.
 </p>
 
 <p>
-If you inspected the generated .HTML file you&rsquo;ll see Emscripten provided an example of this already. Before the .js file is loaded with the script tag, another script tag defines a Module object. It overloads the a property print which directs its input to a text area HTML element with id: output. Similar to how we loaded the .js file, I also created a jispy<sub>overrides.js</sub> file which includes my overrides for the Module.
+If you inspected the generated .HTML file you&rsquo;ll see Emscripten provided an example of this already. Before the .js file is loaded with the script tag, another script tag defines a Module object. It overloads the a property print which directs its input to a text area HTML element with id: output. Similar to how we loaded the .js file, I also created a jispy\<sub>overrides.js</sub> file which includes my overrides for the Module.
 </p>
 
 <p>
-jispy<sub>overrides.js</sub>:
+jispy\<sub>overrides.js</sub>:
 </p>
 <div class="org-src-container">
 <pre class="src src-typescript"><span style="color: #8b94a5;">// </span><span style="color: #8b94a5;">Define Module and override print function</span>
@@ -105,8 +105,8 @@ jispy<sub>overrides.js</sub>:
 </div>
 </div>
 
-<div id="outline-container-org4159ff8" class="outline-3">
-<h3 id="org4159ff8"><span class="section-number-3">3.2.</span> Component Source code</h3>
+<div id="outline-container-orgda8d4d9" class="outline-3">
+<h3 id="orgda8d4d9"><span class="section-number-3">3.2.</span> Component Source code</h3>
 <div class="outline-text-3" id="text-3-2">
 <p>
 In the Angular component responsible for running the WASM application we include the following code to load the jispy<sub>overrides.js</sub> and jispy.js files as HTML script elements.
@@ -153,13 +153,13 @@ In the Angular component responsible for running the WASM application we include
 </div>
 
 <p>
-Loading our component now should produce the same behaviour as running the .HTML file from earlier. A prompt popup for input and printing to the console for output. Of course it would be nicer if input came from a HTML elements on screen as opposed to using prompt and the output was produced after entering each window.prompt entry. This ended being a non-trivial task.
+Loading our component now should produce the same behaviour as running the .HTML file from earlier. A prompt popup for input and printing to the console for output. Of course it would be nicer if input came from a HTML elements on screen as opposed to using prompt and the output was returned after entering each window.prompt entry. This ended being a non-trivial task.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org37c8bc1" class="outline-3">
-<h3 id="org37c8bc1"><span class="section-number-3">3.3.</span> Changing default IO behaviours</h3>
+<div id="outline-container-org1295cf9" class="outline-3">
+<h3 id="org1295cf9"><span class="section-number-3">3.3.</span> Changing default IO behaviours</h3>
 <div class="outline-text-3" id="text-3-3">
 <p>
 Two things to notice:
@@ -264,8 +264,8 @@ emcc &lt;sources&gt; -o main.js <span style="color: #4F894C;">\</span>
 </div>
 </div>
 
-<div id="outline-container-orgaacf4b2" class="outline-2">
-<h2 id="orgaacf4b2"><span class="section-number-2">4.</span> Closing thoughts</h2>
+<div id="outline-container-org8c63204" class="outline-2">
+<h2 id="org8c63204"><span class="section-number-2">4.</span> Closing thoughts</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 There is a lot of interest surrounding WebAssembly. Since completing this project, I am a little more convinced and excited for the increased portability of software when targeted towards the browser. The addtional work I had to do was specific to integrating C&rsquo;s input/output with the HTML browser elements. I think standalone apps like command line tools or API&rsquo;s which just expose once off methods are the easiest to integrate with WebAssembly. In this example I had to modify my code to integrate with HTML elements but if you just want raw portability you can run your application in a browser runtime just with a terminal. I cannot say anything in terms of the performance benefits of WebAssembly since I didn&rsquo;t profile my application, but I can&rsquo;t notice anything different between running on the browser versus running natively. In the end, this is a pretty cool project and I am now on the lookout for other projects which could be run in the browser.
@@ -273,8 +273,8 @@ There is a lot of interest surrounding WebAssembly. Since completing this projec
 </div>
 </div>
 
-<div id="outline-container-org3200a08" class="outline-2">
-<h2 id="org3200a08"><span class="section-number-2">5.</span> Additional Resources</h2>
+<div id="outline-container-orgbbb5f4c" class="outline-2">
+<h2 id="orgbbb5f4c"><span class="section-number-2">5.</span> Additional Resources</h2>
 <div class="outline-text-2" id="text-5">
 <ul class="org-ul">
 <li>Loading JavaScript files in Angular: <a href="https://github.com/angular/components/tree/main/src/google-maps#readme">https://github.com/angular/components/tree/main/src/google-maps#readme</a></li>
