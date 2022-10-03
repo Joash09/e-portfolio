@@ -1,0 +1,276 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="blog-view/KernelDevelopment#org9040f7a">1. Motivation</a></li>
+<li><a href="blog-view/KernelDevelopment#orgd47cdf3">2. Obtain Source Tree</a></li>
+<li><a href="blog-view/KernelDevelopment#org9a7abbd">3. Project Structure</a></li>
+<li><a href="blog-view/KernelDevelopment#org22a441c">4. Janitorial Work</a>
+<ul>
+<li><a href="blog-view/KernelDevelopment#orgc4daa00">4.1. Coding style</a></li>
+<li><a href="blog-view/KernelDevelopment#org759a361">4.2. Sparse testing</a></li>
+</ul>
+</li>
+<li><a href="blog-view/KernelDevelopment#orgb8a14df">5. Making changes and testing</a></li>
+<li><a href="blog-view/KernelDevelopment#orgd905c53">6. Building a patch/patchset</a></li>
+<li><a href="blog-view/KernelDevelopment#org54d40a3">7. Setup email (Gmail) with Git</a></li>
+<li><a href="blog-view/KernelDevelopment#orgb85e1e1">8. Replying to emails</a></li>
+<li><a href="blog-view/KernelDevelopment#org9a00a4a">9. Fix patch if you messed up</a></li>
+<li><a href="blog-view/KernelDevelopment#orgb35097e">10. Bibliography</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org9040f7a" class="outline-2">
+<h2 id="org9040f7a"><span class="section-number-2">1.</span> Motivation</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+I got interested in Linux in high school when I stumbled upon it as side note in a textbook. My first distribution was Ubuntu which I chose purely because I thought the desktop environment looked cool. It was only in the following couple years did I realize the importance Linux had in the computer and programming community. It was also much later when I learnt that what I what of Ubuntu was in fact a collection of software. Linux only refers to the operating system&rsquo;s kernel. The kernel is an abstraction providing a unified platform for software to run on many different types of hardware. As such, the kernel is where device drivers are located. The kernel is open source software. Anyone can contribute to its development. So after years of benefiting from the contributions of others I decided I would investigate the development process that makes it all possible.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd47cdf3" class="outline-2">
+<h2 id="orgd47cdf3"><span class="section-number-2">2.</span> Obtain Source Tree</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+There are many different kernel trees to work off of. It is important to use the same one as the maintainers of the subsystem in which your changes are made. The drivers/staging subsystem is a recommended place to start contributing and is handled by Greg KH. A list of the maintainers&rsquo; trees are available <a href="https://git.kernel.org">here</a>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">git</span> clone https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
+<span style="color: #9A7500;">git</span> checkout staging-testing
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9a7abbd" class="outline-2">
+<h2 id="org9a7abbd"><span class="section-number-2">3.</span> Project Structure</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+To get started with simple contributions we are only interested in the following two directories with the kernel source tree.
+</p>
+<ul class="org-ul">
+<li>scripts folder has useful tools for development. Specifically the checkpatch.pl checks for correct coding style</li>
+<li>drivers/staging is a good place to start kernel. Modules here contain a TODO file which helps give direction on what to do and importantly are open to simple coding style fixes.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org22a441c" class="outline-2">
+<h2 id="org22a441c"><span class="section-number-2">4.</span> Janitorial Work</h2>
+<div class="outline-text-2" id="text-4">
+</div>
+<div id="outline-container-orgc4daa00" class="outline-3">
+<h3 id="orgc4daa00"><span class="section-number-3">4.1.</span> Coding style</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+For simple coding style fixes, run the following command.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">./scripts/checkpatch --file --terse drivers/staging/&lt;driver&gt;/*.c
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org759a361" class="outline-3">
+<h3 id="org759a361"><span class="section-number-3">4.2.</span> Sparse testing</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+Sparse: tool for static code analysis to help detect errors
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">make</span> <span style="color: #842879;">C</span>=<span style="color: #97365B; font-weight: bold;">2</span> drivers/staging/&lt;driver&gt;/ <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">the C=2 option invokes sparse</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb8a14df" class="outline-2">
+<h2 id="orgb8a14df"><span class="section-number-2">5.</span> Making changes and testing</h2>
+<div class="outline-text-2" id="text-5">
+<ol class="org-ol">
+<li>Create and checkout new branch</li>
+<li>Make edits</li>
+<li><p>
+Build the kernel module with edits
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">make</span> <span style="color: #842879;">M</span>=drivers/staging/&lt;driver&gt; clean
+<span style="color: #9A7500;">make</span> <span style="color: #842879;">M</span>=drivers/staging/&lt;driver&gt;
+</pre>
+</div></li>
+<li><p>
+If the module builds, it is worth booting the custom kernel to test it out on hardware. This process differs depending on the distribution you are using. Here I will briefly outline how I did it with the Gentoo distribution
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">make</span> menuconfig <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">enable driver as module</span>
+<span style="color: #9A7500;">make</span> -j7 <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">build</span>
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> modules_install
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> install <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">ensure /boot directory is mounted first</span>
+<span style="color: #9A7500;">sudo</span> grub-mkconfig -o /boot/grub/grub.cfg
+</pre>
+</div></li>
+<li><p>
+Use dmesg tool for reading kernel messages
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">dmesg -l crit
+dmesg -l err
+dmesg -l warn
+</pre>
+</div></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgd905c53" class="outline-2">
+<h2 id="orgd905c53"><span class="section-number-2">6.</span> Building a patch/patchset</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+The are strict <a href="https://kernelnewbies.org/PatchPhilosophy">rules</a> to submitting patches. One of these rules dictates a single patch should only be do one thing. Patches relate to commits. If you are making a single change you&rsquo;ll have one commit and hence submit one patch. If you are submitting many changes you&rsquo;ll have many commits and submit a patchset (i.e. a collection of numbered patches).
+</p>
+
+<ol class="org-ol">
+<li>Git status gives summary of files modified</li>
+<li><p>
+Git diff shows files modified in patch format
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">git</span> diff
+
+<span style="color: #9A7500;">git</span> commit -v <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">only staged changes will be commited. ensure a single commit only achieves a single task</span>
+</pre>
+</div></li>
+<li><p>
+Commit message should be as follows. Ensure you included signed off line.
+</p>
+<div class="org-src-container">
+<pre class="src src-markdown"><span style="color: #4F894C;">    Staging: r8188eu: Fix too </span><span style="color: #4F894C; text-decoration: underline;">many</span><span style="color: #4F894C;"> leading tabs line length</span>
+
+<span style="color: #4F894C;">    Fix coding style issue. Too </span><span style="color: #4F894C; text-decoration: underline;">many</span><span style="color: #4F894C;"> leading tabs</span>
+
+<span style="color: #4F894C;">    Signed off by: Joash Naidoo <a href="mailto:joash.n09%40gmail.com">&lt;joash.n09@gmail.com&gt;</a></span>
+</pre>
+</div></li>
+<li><p>
+Create patch
+</p>
+
+<ul class="org-ul">
+<li>Must run the following from the root of the kernel source tree</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">git</span> show --pretty=full
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">if single patch</span>
+<span style="color: #9A7500;">git</span> format-patch &lt;maintainers-branch&gt;..&lt;my-branch&gt;
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">if patchset</span>
+<span style="color: #9A7500;">git</span> format-patch -n --cover-letter &lt;maintainers-branch&gt;..&lt;my-branch&gt;
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>If resubmitting patches, the &#x2013;subject-prefix option must be passed (see below)</li>
+<li>For patchsets, remember to change cover letter subject line and contents. Contents are an overview of what the following patches fixes. Cover letter is discarded after patchset applied so ensure current information is found within the individual patch commits</li>
+<li>Format patch produces patch files. Use -o option to specify output directory</li>
+</ul></li>
+
+<li><p>
+Ensure patch passes checkpatch.el script
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">./scripts/checkpatch.pl &lt;patch-file&gt;
+</pre>
+</div></li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org54d40a3" class="outline-2">
+<h2 id="org54d40a3"><span class="section-number-2">7.</span> Setup email (Gmail) with Git</h2>
+<div class="outline-text-2" id="text-7">
+<ol class="org-ol">
+<li>Enable 2 factor authentication on Gmail</li>
+<li>Create &ldquo;App Password&rdquo;</li>
+<li><p>
+Add the following to you .gitconfig
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">[</span>sendemail<span style="color: #3B6EA8;">]</span>
+        smtpserver = smtp.googlemail.com
+        smtpencryption = tls
+        smtpserverport = <span style="color: #97365B; font-weight: bold;">587</span>
+        smtpuser = <a href="mailto:your-email%40gmail.com">&lt;your-email@gmail.com&gt;</a>
+</pre>
+</div></li>
+<li><p>
+Find list of maintainers to send to
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">./scripts/get_maintainer.pl 0001-&lt;patch&gt;
+</pre>
+</div></li>
+<li><p>
+Send email 🚨😱
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">git</span> send-email --to=&lt;&gt; --cc=&lt;&gt; 0001-&lt;patch&gt;
+</pre>
+</div></li>
+<li>You will be prompted for password. Use your &ldquo;App password&rdquo; you created earlier.</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgb85e1e1" class="outline-2">
+<h2 id="orgb85e1e1"><span class="section-number-2">8.</span> Replying to emails</h2>
+<div class="outline-text-2" id="text-8">
+<ul class="org-ul">
+<li>Do NOT use Gmail&rsquo;s web based email client. <a href="https://www.kernel.org/doc/html/v4.10/process/email-clients.html">Recommended clients</a></li>
+<li>You need to use an email client that supports replying inline</li>
+<li>Some options include MUTT (a terminal based email client) and mu4e (what I personally used)</li>
+<li>Reply to everyone in the list (I learnt this the hard way)</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org9a00a4a" class="outline-2">
+<h2 id="org9a00a4a"><span class="section-number-2">9.</span> Fix patch if you messed up</h2>
+<div class="outline-text-2" id="text-9">
+<ol class="org-ol">
+<li>First stage changes you were requested to make</li>
+<li><p>
+Amend commit. Assuming you want to create a patch out of the latest commit, run the following:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">git</span> commit --verbose --amend
+</pre>
+</div></li>
+<li><p>
+Create new patch
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">git</span> format-patch --subject-prefix=<span style="color: #4F894C;">"PATCH v2"</span> HEAD^
+./scripts/checkpatch.pl &lt;new_patch_file&gt;
+</pre>
+</div></li>
+<li>When you&rsquo;re ready send email</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgb35097e" class="outline-2">
+<h2 id="orgb35097e"><span class="section-number-2">10.</span> Bibliography</h2>
+<div class="outline-text-2" id="text-10">
+<ol class="org-ol">
+<li><a href="https://www.youtube.com/watch?v=LLBrBBImJt4">Write and Submit your first Linux kernel Patch (video)</a></li>
+<li><a href="https://kernelnewbies.org/FirstKernelPatch">KernelNewbies First Kernel Patch</a></li>
+</ol>
+</div>
+</div>

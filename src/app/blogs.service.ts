@@ -7,6 +7,14 @@ export class BlogsService {
 
   BlogPosts: BlogPost[] = [
     {
+      id: 'KernelDevelopment',
+      title: 'Documenting the process of making my first Linux kernel contribution',
+      date: '17-09-2022',
+      thumbnail: 'Tux.png',
+      description: 'Learning the process of finding work to be done on the Linux kernel and submittong patches to the community',
+      keywords: ['Linux kernel', 'C Programming Language', 'Drivers', 'Git', 'Gmail']
+    },
+    {
       id: 'WebAssembly',
       title: 'Porting my Lisp interpreter (written in C) to Webassembly',
       date: '02-08-2022',
@@ -72,7 +80,7 @@ export class BlogsService {
     },
     {
       id: 'IPFS',
-      title: 'A decentralized web',
+      title: 'Exploring a decentralized web with the Interplanetary File System',
       date: '31-07-2021',
       thumbnail: 'ipfs.png',
       description: 'A quick look on get started with IPFS and deploy an Angular app to the decentralized network',
