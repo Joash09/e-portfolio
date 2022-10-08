@@ -19,7 +19,11 @@ export class AppComponent implements OnInit, OnDestroy {
   isDark = false;
 
   constructor(private _themeService: ThemeService) {
-
+    // first check local storage
+    if (localStorage.getItem('isDark')) {
+      this.isDark = (localStorage.getItem('isDark') === 'true')
+      if (this.isDark) this._themeService.setDarkMode(this.isDark)
+    }
   }
 
   ngOnInit(): void {

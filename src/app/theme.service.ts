@@ -15,9 +15,15 @@ export class ThemeService {
     return this._darkMode$;
   }
 
+  setDarkMode(isDark: boolean): void {
+    this._darkMode = isDark;
+    this._darkMode$.next(this._darkMode);
+  }
+
   toggleTheme() {
     this._darkMode = !this._darkMode;
     this._darkMode$.next(this._darkMode);
+    localStorage.setItem('isDark', this._darkMode.toString());
   }
 
 }
