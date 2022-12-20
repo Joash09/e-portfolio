@@ -7,6 +7,14 @@ export class BlogsService {
 
   BlogPosts: BlogPost[] = [
     {
+      id: 'EverythingIKnowAboutETFs',
+      title: 'Everything I know about ETFs (so far)',
+      date: '19-12-2022',
+      thumbnail: 'etf.jpg',
+      description: 'Discussing the history, pros and cons of passive investing with ETFs',
+      keywords: ['passive', 'investing', 'ETFs', 'active', 'finance', 'grossman-stigletz paradox', 'ETF bubble']
+    },
+    {
       id: 'KernelDevelopment',
       title: 'Documenting the process of making my first Linux kernel contribution',
       date: '17-09-2022',
