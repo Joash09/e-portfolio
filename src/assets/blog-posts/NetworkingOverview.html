@@ -1,0 +1,274 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="blog-view/NetworkingOverview#orgace1696">1. Background</a></li>
+<li><a href="blog-view/NetworkingOverview#org94b65b9">2. Physical Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org9d8d5b8">3. Data Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org9838821">4. Network Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org08f4922">5. Transport Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org082f7d1">6. Session Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#orgf012e3e">7. Presentation Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#orga913eab">8. Application Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#orge27a6ed">9. Commonly used networking terms</a>
+<ul>
+<li><a href="blog-view/NetworkingOverview#org7ad8cb7">9.1. Firewall</a></li>
+<li><a href="blog-view/NetworkingOverview#orga28cfd4">9.2. Proxy</a></li>
+</ul>
+</li>
+<li><a href="blog-view/NetworkingOverview#orgc040a98">10. An example: Storage Area Network (SAN)</a></li>
+<li><a href="blog-view/NetworkingOverview#orgb987e0f">11. References</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgace1696" class="outline-2">
+<h2 id="orgace1696"><span class="section-number-2">1.</span> Background</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+At its core networking is simply relates to 2 computers communicating with each other.
+Unfortunately, the field of networking is heavily laden with jargon, loosely used and overlapping terms and I wanted to get to the bottom of it once and for all.
+</p>
+
+<p>
+I will be using the Open Systems Interconnection (OSI) model as a map to explore the field of networking.
+The OSI model abstracts the various objectives needed for reliable communication and breaks these objectives down in layers.
+The lower layers are the most tangible, as they represent the physical components and the individual bits which make up the data.
+The higher layers are more concerned with (end-goal) functionality and is how the end users, such as you and me, interface with the network.
+To highlight the usefulness of the OSI model consider the process of sending data to another computer.
+It is vital for these two computers to agree on everything from the data structure (i.e. the order of bits) all the way to agreeing on the physical medium used to send data (e.g. copper wire).
+For complex networks, specifically the internet, in order to transmit this data we will traverse down the OSI model layers introducing more rules and information (typically through headers) dictating how to transmit the data.
+Conversely, when the recipient receives the data, it will work up from the lowest layer back to the application layer (i.e. the format in which the data was originally sent).
+By abstracting networking functionality into layers a web programmer never has to consider how the lower layers are implemented and is only concerned with the application layers.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org94b65b9" class="outline-2">
+<h2 id="org94b65b9"><span class="section-number-2">2.</span> Physical Layer</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The lowest layer is the physical layer. This layer refers to the communication medium over which data is sent. To layman, fiber optics cables or twisted coaxial cables will come to mind. These mediums transmit data over light or electrical signals respectively. What is less apparent is also knowing how we represent these signals physically. In the case of an electrical signal a high bit could be represented as a high voltage or a low voltage. Alternatively by sending using two signals a single bit could be represented by the sum of signals. This is referred to line coding and although is not thought of much, it effects how reliable our signal is and how far it can be transmitted.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9d8d5b8" class="outline-2">
+<h2 id="org9d8d5b8"><span class="section-number-2">3.</span> Data Layer</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Defines how devices create and terminate connections between each other.
+The data layer consists of the commonly known IEEE 802 standards for local area (LAN) and personal area networks.
+These are networks between your own devices only.
+Naturally, it is useful to have a standard for which different devices, built by different manufacturers for different purposes, to communicate with each other.
+The IEEE 802 standards provides this standardization for computers connecting in a local area network. The IEEE 802 set of standards is broken into groups.
+The popular of these standards is Ethernet defined in the 802.3 group, and wireless LAN (i.e. WiFi) which is defined in the 802.11 group.
+For interest sake, additional appended characters to the group names define versions of the standards.
+For example 802.11ac and 802.11ax defines WiFi versions 5 and 6 respectively.
+</p>
+
+<p>
+Computers communicating over a LAN will need to agree on a unique way of identifying each other on the network.
+IEEE 802 defines a Medium Access Control (MAC) number which is a unique number given by the IEEE standards and is assigned to network devices when manufactured.
+The computers should as agree upon the structure of the data.
+Data sent over an Ethernet network must be split into data frames (also known as packets) of a set size.
+These data frames will also include the source and destination MAC addresses, the data itself and additional redundant data (referred to check redundant cycle [CRC]) that the receiving computer uses to ensure the integrity of the data.
+The physical device used to connect and transfer data in an Ethernet network is called a <b>switch</b>. Devices connected to an Ethernet network must include a Network Interface Card (NIC), to translate Ethernet frames into useful digital logic.
+</p>
+
+<p>
+Finally, it is important to note that at this layer, the medium over which data is sent is not defined as that forms part of physical layer. An Ethernet network can send data using twisted coaxial cables or fiber optic cables. So called &ldquo;Ethernet&rdquo; cables are more accurately described as twisted pair cables with a RJ-45 port.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org9838821" class="outline-2">
+<h2 id="org9838821"><span class="section-number-2">4.</span> Network Layer</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+This layer is only interested in ensuring data sent from a source node to a destination node over <b>connected networks</b>. Networks are connected b a device called a <b>gateway</b>.
+The internet (shorted from <i>interconnected networks</i>) is an example of this concept. Specifically, the internet is an interconnected network which speaks the Internet Protocol (IP) language.
+As an example of the IP protocol, a node in one Ethernet network cannot send data to another node in another Ethernet network only using a MAC address as identification, as the second MAC address does not exist in the first Ethernet network.
+Hence, a new type of address must be used to identify networks, called an IP address. If the destination IP address does not belong to a node in the local network, a <b>router</b> (a type of gateway device specific to connected networks using IP) will pass the data to another network by means of a forwarding table.
+To make IP address look ups more efficient, IP addresses are designed to be grouped together into ranges.
+The most significant digits of the IP address provide the most course control over where the packet goes. Initially, the router only needs to consider these digits.
+Gradually the least significant digits provide the fine grained control to the exact destination.
+Hence, when an IP address is setup on an Ethernet network, a <b>subnet mask</b> is also defined to quickly calculate the range of IP addresses for the other nodes on the network.
+Then if the destination IP address falls outside of the available local network addresses, the router will forward the data packet.
+</p>
+
+<p>
+The number of bits allocated to the source and destination addresses for an IP address is significant as they directly correspond to the number of devices that can be connected on the internet. Most commonly traffic is sent with version 4 of the internet protocol (IPv4) which allocates 32 bits to the address. Today the number of devices has surpassed the capabilities of IPv4. Two solutions are currently used:
+</p>
+<ol class="org-ol">
+<li>A Network Address Translation (NAT) device allows us to represent a group of IP addresses with a single public address, hence decreasing the number of public IP addresses needed and allowing reuse of local and private IP addresses</li>
+<li>IPv6 iteration of the internet protocol overcomes this limitation by allocating 64 bits to define an address and it&rsquo;s adoption is undergoing.</li>
+</ol>
+
+<p>
+Bare in mind, the IP protocol does not replace the Ethernet frames discussed in the Data Layer. Data originating in a local area network must still travel the Ethernet network as an Ethernet frame. The additional IP protocol information included within the Ethernet&rsquo;s payload.
+This begs the question, which MAC address must the sender include in the Ethernet frame? As previously explained, it cannot be the MAC address of the destination node.
+The sender instead will include the MAC address of the router, which it obtains through an <b>Address Resolution Protocol (ARP)</b>.
+Essentially, the ARP broadcasts a data frame requesting the router&rsquo;s MAC address.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org08f4922" class="outline-2">
+<h2 id="org08f4922"><span class="section-number-2">5.</span> Transport Layer</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+The transport layer is only interested in transmitting data between <b>applications</b>. Applications are the actual use cases for transmitting data over the network such as transferring files or web pages. Examples of Applications are discussed in greater detail in Applications layer.
+</p>
+
+<p>
+From an application level, we no longer want to be concerned about the data frames themselves. Application data is larger than the size of the data included in an Ethernet frame, and this introduces the following concerns if any of the following happen:
+</p>
+<ul class="org-ul">
+<li>Data frame is lost due to some network error</li>
+<li>Frames are received in a different order than expected</li>
+<li>When transmitting data for multiple applications simultaneously, which frames belong to which application?</li>
+</ul>
+
+<p>
+The Transmission Control Protocol (TCP) and User Datagram Protocol (UDP) are protocols introduced to address these concerns without the intervention of the programmer/application
+We will first look at Transfer Control Protocol (TCP), which is not to be confused with the TCP/IP model.<sup><a id="fnr.1" class="footref" href="blog-view/NetworkingOverview#fn.1" role="doc-backlink">1</a></sup>
+The TCP/IP model is an alternative, simplified model to the OSI model discussed.
+TCP is a <b>connection orientated</b> protocol, which means it must establish a connection with the destination node before sending any data. Once a connection is established, the application just views the connection as a bi-directional stream of data.
+</p>
+
+<p>
+The TCP protocol introduces headers which illustrate how the protocol deals with the aforementioned concerns.
+A TCP data frame must include a sequence number to ensure correct ordering.
+The TCP and UDP protocols introduce the concept of ports in their headers. Remember at this layer, we are no longer dealing with physical connections and physical sockets as the name &ldquo;ports&rdquo; might imply. Instead a port is a &ldquo;logical&rdquo; connection and is used to support multiple application connections simultaneously.
+Introducing ports enables multiple applications to communicate with the network node via <b>multiplexing</b>. Applications must now specify the correct port number, which is included in the TCP header so a node knows what type of application is making the connection.
+Finally, TCP frames include an acknowledgment number. When data reaches the destination node, the recipient must return an acknowledgment number. If no acknowledgment is received, the data frame is resent. This ensures no frames are lost.<sup><a id="fnr.2" class="footref" href="blog-view/NetworkingOverview#fn.2" role="doc-backlink">2</a></sup> Although, the acknowledgment is useful in ensuring all data finds its destination, there are circumstances where a user is willing to lose frames for the sake of speed. In these cases, a user will opt for UDP protocol.
+</p>
+
+<p>
+UDP protocol is similar to TCP however prioritizes speed and isn&rsquo;t concerned with data is lost along the way. It is widely uses for video streaming and Voice over IP (VoIP). Unlike TCP, UDP is connection-less.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org082f7d1" class="outline-2">
+<h2 id="org082f7d1"><span class="section-number-2">6.</span> Session Layer</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+As previously discussed, the TCP and UDP protocols create connections to the destination node before transferring data. The session layer is responsible for managing these connections.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf012e3e" class="outline-2">
+<h2 id="orgf012e3e"><span class="section-number-2">7.</span> Presentation Layer</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+Presentation layers, as the name suggests, only considers how the data is presented on the network. This may mean encrypting/decrypting the data to hide the data from packet sniffers and bad actors; applying encoding schemes for data compression or greater data recovery; or defining how string characters data are interpreted (e.g. is a ASCII or UNICODE etc.). Please keep in mind encryption and decryption can be actually be done at any of the previous layers as well.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga913eab" class="outline-2">
+<h2 id="orga913eab"><span class="section-number-2">8.</span> Application Layer</h2>
+<div class="outline-text-2" id="text-8">
+<p>
+Finally we reach the application layer that you and I interact with everyday. Networking applications speak to the different use cases we have for transmitting data over a network. As discussed in the transport layer, port numbers are reserved for the different types of applications. Remember, port numbers were introduced to support multiple simultaneous connections. Even though, a single application may have one destination port, a unique connection is defined by both the source and destination port number.
+</p>
+
+<p>
+Here are a few examples:
+</p>
+<ul class="org-ul">
+<li>Hypertext Transfer Protocol (HTTP) we use for exchanging web pages and browsing the internet. HTTP listens on port 80.</li>
+<li>File Transfer Protocol (FTP) we use for sharing files between computers.</li>
+<li>Simple Mail Transfer Protocol (SMTP) is the protocol which allows us to send E-Mail. SMTP listens uses ports 25 or 587.</li>
+<li>Domain Name System (DNS) is a application protocol which maps URL names like www.google.com to a server&rsquo;s IP address. URL requests are sent to a DNS server on port 53.</li>
+<li>Dynamic Host Configuration Protocol (DHCP) protocol which assigns IP addresses to a node on a network. DHCP listens for devices requesting an IP address on port 67 or 68.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orge27a6ed" class="outline-2">
+<h2 id="orge27a6ed"><span class="section-number-2">9.</span> Commonly used networking terms</h2>
+<div class="outline-text-2" id="text-9">
+</div>
+<div id="outline-container-org7ad8cb7" class="outline-3">
+<h3 id="org7ad8cb7"><span class="section-number-3">9.1.</span> Firewall</h3>
+<div class="outline-text-3" id="text-9-1">
+<p>
+A firewall is simply an application or device which filters data transmitted between computers on a network.
+A firewall can operate at different levels of the OSI model. For instance we can block data being received on a specific port (Transport layer) or block data between specific IP addresses (the network layer).
+Firewalls are configured by defining rules.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orga28cfd4" class="outline-3">
+<h3 id="orga28cfd4"><span class="section-number-3">9.2.</span> Proxy</h3>
+<div class="outline-text-3" id="text-9-2">
+<p>
+A proxy server is server is a machine which sits between your network and the rest of the internet (Network layer). Instead of using your IP address to communicate with the rest of the network, all your data is sent and received by the proxy and its IP address. Given its strategic position in the network, it can also run the firewall for your network and apply any additional security measures before you receive or send any data.
+</p>
+</div>
+
+<div id="outline-container-org20f8500" class="outline-4">
+<h4 id="org20f8500"><span class="section-number-4">9.2.1.</span> Reverse Proxy</h4>
+<div class="outline-text-4" id="text-9-2-1">
+<p>
+Your network may be made up of multiple resources. If an external users makes a request to access a specific resource on your network, a reverse proxy (specific type of proxy) will direct that request to the corresponding resource. Reverse proxies can be intelligent by applying caching rules which frees up your resources from serving commonly requested items.
+</p>
+</div>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-orgc040a98" class="outline-2">
+<h2 id="orgc040a98"><span class="section-number-2">10.</span> An example: Storage Area Network (SAN)</h2>
+<div class="outline-text-2" id="text-10">
+<p>
+A storage area network is a network of computing nodes specifically designed for data storage.
+Multiple storage devices are accessed by multiple servers. Multiple devices add redundancy in the case of faults.
+Additionally, the benefits of a SAN over the more commonly used Network Attached Disk (NAS) is access to raw storage blocks versus access to files.
+The network of storage devices and servers is accomplished with &ldquo;special&rdquo; switches, but instead of using the technologies discussed, SAN networks use Fibre channel technology stack (notice spelling as compared to fiber optics).
+Fibre channel is a layered stack separate from the Internet-centric examples I gave explaining the OSI model.
+</p>
+
+<ul class="org-ul">
+<li>At the lowest OSI layer fibre channel achieved with either fiber optics or copper cabling.</li>
+<li>The data layer protocol for fibre channel is Small Computer System Interface (SCSI). SCSI frames are different to Ethernet frames and hence the need for different types of switches. Instead of MAC addresses, fibre channel identifies nodes with World Wide Names (WWN) also controlled by IEEE.</li>
+<li>Fibre exists behind the server. As a single network there is no need for an internet protocol equivalent.</li>
+<li>Nor does fibre channel use TCP or UDP</li>
+<li>Given, the specific use cases, there is no need for an additional abstraction of the transport layer. SCSI includes ports.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgb987e0f" class="outline-2">
+<h2 id="orgb987e0f"><span class="section-number-2">11.</span> References</h2>
+<div class="outline-text-2" id="text-11">
+<ol class="org-ol">
+<li><a href="https://en.wikipedia.org/wiki/OSI_model">OSI Model</a></li>
+<li><a href="https://www.youtube.com/watch?v=4IMc3CaMhyY">How the OSI Model Works | Network Fundamentals Part 3</a></li>
+<li><a href="https://www.youtube.com/watch?v=4IMc3CaMhyY">TCP: Transmission control protocol | Networking tutorial (12 of 13)</a></li>
+<li><a href="https://www.geeksforgeeks.org/what-is-proxy-server/">What is a Proxy Server?</a></li>
+<li><a href="https://reggle.wordpress.com/2011/10/15/ethernet-versus-fibre-channel-an-introduction/">Ethernet versus Fibre Channel: an introduction.</a></li>
+</ol>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="blog-view/NetworkingOverview#fnr.1" role="doc-backlink">1</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+Otherwise known as the Internet Protocol Suite or Internet Protocol Stack (inspires the layer imagery). The layers in the TCP/IP model correlate well to the layers in the OSI model.
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="blog-view/NetworkingOverview#fnr.2" role="doc-backlink">2</a></sup> <div class="footpara" role="doc-footnote"><p class="footpara">
+Even with an acknowledgment from the sender there is no guarantee for successful communication. This is encapsulated in the Two Generals Problem
+</p></div></div>
+
+
+</div>
+</div>

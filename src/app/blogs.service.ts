@@ -7,6 +7,14 @@ export class BlogsService {
 
   BlogPosts: BlogPost[] = [
     {
+      id: 'NetworkingOverview',
+      title: 'Understanding networking through the OSI model',
+      date: '23-01-2023',
+      thumbnail: 'osi_model.jpg',
+      description: 'What is the OSI model and how does it work. Discussion of the physical, data, network, transport and application layers.',
+      keywords: ['OSI', 'networking', 'TCP', 'IP', 'UDP', 'gateway', 'switch', 'LAN', 'Internet']
+    },
+    {
       id: 'EverythingIKnowAboutETFs',
       title: 'Everything I know about ETFs (so far)',
       date: '19-12-2022',
