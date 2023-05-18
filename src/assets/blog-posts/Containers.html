@@ -1,0 +1,404 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="blog-view/Containers#orgd8a4531">1. Background</a></li>
+<li><a href="blog-view/Containers#org51a0a48">2. Kernel namespaces</a></li>
+<li><a href="blog-view/Containers#org182485a">3. chroot jail</a></li>
+<li><a href="blog-view/Containers#orgf6065cf">4. systemd-nspawn</a></li>
+<li><a href="blog-view/Containers#org94ebc7e">5. firejail</a></li>
+<li><a href="blog-view/Containers#orgb88eca0">6. Networking Isolation</a>
+<ul>
+<li><a href="blog-view/Containers#org8c8868c">6.1. Network Bridge</a>
+<ul>
+<li><a href="blog-view/Containers#orgc4e4b1c">6.1.1. iproute2</a></li>
+<li><a href="blog-view/Containers#org0f9df9a">6.1.2. systemd networkd</a></li>
+</ul>
+</li>
+<li><a href="blog-view/Containers#orge21dc23">6.2. iptables (Firewall)</a></li>
+</ul>
+</li>
+<li><a href="blog-view/Containers#org6383704">7. Display Server Isolation with X&rsquo;s Xephyr</a></li>
+<li><a href="blog-view/Containers#org4a8241d">8. Putting it all together</a></li>
+<li><a href="blog-view/Containers#orgab37a66">9. References</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgd8a4531" class="outline-2">
+<h2 id="orgd8a4531"><span class="section-number-2">1.</span> Background</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+In the never ending quest to optimize my system, security is an area which I have paid little attention to. I spend most of my time on the internet. Unfortunately, this the biggest security concern since surfing the internet exposes my system to the dangerous outside world. Furthermore, consider the web browser which is my main interface to the internet. The browser is an execution environment which downloads and runs the code for web applications. Any application with the ability to run code is susceptible to running malicious code and hence compromising our systems.
+</p>
+
+<p>
+To address the security concerns of the web browser, I will outline the process of sandboxing the browser application from the rest of the system. This is a safety measure which protects the rest of the system, in the event the browser is compromised. The concept of sandboxing should also be familiar anyone who has worked with container technology. An exploration into sandboxing will also expose some of the hidden mechanisms which make containers, like Docker, possible.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org51a0a48" class="outline-2">
+<h2 id="org51a0a48"><span class="section-number-2">2.</span> Kernel namespaces</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Containers and application isolation technology begins with the Linux kernel. Fundamentally, the kernel is responsible for ensuring that processes (i.e. running applications) have enough hardware resources to run and ensure that all system resources are efficiently shared between processes. These resources include access to the CPU and memory to run the process and access to IO devices like storage disks and network resources.
+</p>
+
+<p>
+The kernel virtualises hardware so that the application can behave as if it is the only running application on the machine. I argue this is the first step to isolating processes and their access to system resources. For example, consider a process runs with its own virtual memory table provided by the kernel. This virtual memory prevents that process from accessing other memory assigned to other processes. Kernel namespaces is a feature which, like namespaces in C++, enables the kernel to isolate computing resources even further from the individually running processes. There are different ways one can separate resources and as such there are 8 different corresponding kernel namespaces. These are:
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Type</td>
+<td class="org-left">Description</td>
+</tr>
+
+<tr>
+<td class="org-left">Mount</td>
+<td class="org-left">Creating a separate mount namespace limits and process&rsquo; access to portions of the system&rsquo;s filesystem from the application</td>
+</tr>
+
+<tr>
+<td class="org-left">Process ID</td>
+<td class="org-left">Processes running in a separate process ID namespace cannot see what other processes are also running on the system</td>
+</tr>
+
+<tr>
+<td class="org-left">Inter-process communication</td>
+<td class="org-left">Similar to process ID namespaces, this type of namespace limits a process&rsquo; ability to send signals to other processes</td>
+</tr>
+
+<tr>
+<td class="org-left">Network</td>
+<td class="org-left">Isolates process network traffic from each other, preventing one process from sniffing the traffic from another process</td>
+</tr>
+
+<tr>
+<td class="org-left">User</td>
+<td class="org-left">Processes, when running in the container, can have resource permissions as if it was running as another user or group Id</td>
+</tr>
+
+<tr>
+<td class="org-left">cgroups</td>
+<td class="org-left">cgroups are short for &ldquo;control groups.&rdquo; Control groups provide granular control over resources. Processes will only have access to resources which are allowed by the control group</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-org182485a" class="outline-2">
+<h2 id="org182485a"><span class="section-number-2">3.</span> chroot jail</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Creating a chroot jail best illustrates creating a separate mount namespace for a process you wish to run. The steps for setting up a chroot jail is summarized to:
+</p>
+<ol class="org-ol">
+<li>Extracting a pre-built file system directory to any directory you wish</li>
+<li>Mount the following required host directories:
+<ul class="org-ul">
+<li>/sys</li>
+<li>/proc</li>
+<li>/run</li>
+</ul></li>
+<li>&ldquo;chroot&rdquo; into the directory (i.e. change root directory)</li>
+<li>Once in chroot you can install and run processes which is unaware of the &ldquo;real&rdquo; host file system that sits above this chroot directory</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-orgf6065cf" class="outline-2">
+<h2 id="orgf6065cf"><span class="section-number-2">4.</span> systemd-nspawn</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+If you are running a systemd system, you also have a builtin utility which builds upon chroot by automating the process of mounting the aforementioned second and third steps. Additionally, systemd-nspawn allows you to boot your container with its own <i>init</i> system, hence the processes you run in the container are unaware of the other host system processes. This is an example of process Id namespaces in action. systemd-nspawn containers are referred to as &ldquo;chroot on steroids.&rdquo;
+</p>
+</div>
+</div>
+
+<div id="outline-container-org94ebc7e" class="outline-2">
+<h2 id="org94ebc7e"><span class="section-number-2">5.</span> firejail</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Isolating applications is a tedious task and sometimes it is worth relying on the experts for &ldquo;sane defaults&rdquo; when it comes to what should be isolated.
+Firejail is a lightweight SUID sandboxing application which, using kernel namespaces as we saw earlier, makes it easy to isolate an process from the host system.
+Starting a &ldquo;firejailed&rdquo; process is as simple as prefixing our application&rsquo;s command with the firejail command. It is also useful to view a list of currently running firejail applications by running the command below:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">firejail &lt;options&gt; &lt;application&gt;
+firejail --list
+</pre>
+</div>
+
+<p>
+The following sections will outline the process to setup a firejail container. The following steps are outline in <a href="https://wiki.gentoo.org/wiki/User:Sakaki/Sakaki's_EFI_Install_Guide/Sandboxing_the_Firefox_Browser_with_Firejail">Sakaki&rsquo;s Sandboxing the Firefox browser with Firejail Gentoo tutorial</a>. I have just provided expanded on some of the steps, providing additional information or alternative steps where applicable.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb88eca0" class="outline-2">
+<h2 id="orgb88eca0"><span class="section-number-2">6.</span> Networking Isolation</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+I have spoken a lot on sandboxing, but consider there are still host system resources we would like our application to have access to. In the case of the web browser we want network isolation but we still need to connect to the host&rsquo;s network interface to access the internet. The following sections outline creating a &ldquo;bridge&rdquo; and firewall rules which will allow our isolated process to still have access to the internet.
+</p>
+</div>
+
+<div id="outline-container-org8c8868c" class="outline-3">
+<h3 id="org8c8868c"><span class="section-number-3">6.1.</span> Network Bridge</h3>
+<div class="outline-text-3" id="text-6-1">
+<p>
+I have identified two methods to creating network bridges in with Linux. Regardless of whichever method you choose you should see the bridge interface with &ldquo;UP&rdquo; status by running the following:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">ip link show <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">show all</span>
+ip link show up <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">show all with status of "UP"</span>
+ip link show br10 <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">show only bridge interface</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">alternatively</span>
+ifconfig <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">this command is slowing being deprecated</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgc4e4b1c" class="outline-4">
+<h4 id="orgc4e4b1c"><span class="section-number-4">6.1.1.</span> iproute2</h4>
+<div class="outline-text-4" id="text-6-1-1">
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">#</span><span style="color: #8b94a5;">!/bin/</span><span style="color: #3B6EA8;">bash</span>
+<span style="color: #842879;">BRIDGE</span>=<span style="color: #4F894C;">"br10"</span>
+<span style="color: #842879;">SUBNET_PREFIX</span>=<span style="color: #4F894C;">"10.10.20"</span>
+
+<span style="color: #3B6EA8;">if</span> <span style="color: #3B6EA8;">[</span><span style="color: #97365B;">[</span> <span style="color: #4F894C;">"start"</span>  == <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">1</span><span style="color: #4F894C;">"</span> <span style="color: #97365B;">]</span><span style="color: #3B6EA8;">]</span>; <span style="color: #3B6EA8;">then</span>
+    ip link add name <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> type bridge
+    ip addr add <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">SUBNET_PREFIX</span><span style="color: #4F894C;">"</span>.1/24 dev <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span>
+    ip link set <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> up
+<span style="color: #3B6EA8;">elif</span> <span style="color: #3B6EA8;">[</span><span style="color: #97365B;">[</span> <span style="color: #4F894C;">"stop"</span> == <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">1</span><span style="color: #4F894C;">"</span> <span style="color: #97365B;">]</span><span style="color: #3B6EA8;">]</span>; <span style="color: #3B6EA8;">then</span>
+    <span style="color: #3B6EA8;">if</span> ip route show dev <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> &amp;&gt;/dev/null; <span style="color: #3B6EA8;">then</span>
+        ip link set <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> down
+        ip link delete <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> type bridge
+    <span style="color: #3B6EA8;">fi</span>
+<span style="color: #3B6EA8;">else</span>
+    &gt;&amp;<span style="color: #97365B; font-weight: bold;">2</span> <span style="color: #9A7500;">echo</span> <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">0</span><span style="color: #4F894C;">: Error: please use 'start' or 'stop'"</span>
+<span style="color: #3B6EA8;">fi</span>
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">[</span>Unit<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Description</span>=Set up persistant bridge interface for firejail
+<span style="color: #842879;">Wants</span>=network.target
+<span style="color: #842879;">After</span>=network.target
+
+<span style="color: #3B6EA8;">[</span>Service<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Type</span>=oneshot
+<span style="color: #842879;">ExecStart</span>=/usr/local/sbin/firejail-bridge <span style="color: #4F894C;">"start"</span>
+<span style="color: #842879;">RemainAfterExit</span>=true
+<span style="color: #842879;">ExecStop</span>=/usr/local/sbin/firejail-bridge <span style="color: #4F894C;">"stop"</span>
+
+<span style="color: #3B6EA8;">[</span>Install<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">WantedBy</span>=multi-user.target
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org0f9df9a" class="outline-4">
+<h4 id="org0f9df9a"><span class="section-number-4">6.1.2.</span> systemd networkd</h4>
+<div class="outline-text-4" id="text-6-1-2">
+<p>
+With systemd&rsquo;s networkd utility, we can create a persistent network bridge by adding the following config files in the <i>etc/systemd/network</i> folder. Although I think this is a viable option, I couldn&rsquo;t get the bridge to automatically set its status to UP with this option.
+</p>
+
+<ol class="org-ol">
+<li>First we shall declare a network bridge device, by creating a firefox-br.netdev file</li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">[</span>NetDev<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Name</span>=firefox-br
+<span style="color: #842879;">Kind</span>=bridge
+</pre>
+</div>
+<ol class="org-ol">
+<li>Second, we shall configure the properties of this network device in a firefox-br.network file</li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">[</span>Match<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Name</span>=firefox-br
+
+<span style="color: #3B6EA8;">[</span>Network<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">DHCP</span>=ipv4
+</pre>
+</div>
+<ol class="org-ol">
+<li>Finally, we shall link our desired network interfaces (i.e. interfaces to physical hardware) to the network bridge by modifying their respective .network config files. For example I will configure my eth interface to link to my network bridge with the following eth.network config options. Since I also use WIFI, I made a second similar config file for my WIFI interface.</li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">[</span>Match<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Name</span>=eth*
+
+<span style="color: #3B6EA8;">[</span>Network<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Bridge</span>=firefox-br
+</pre>
+</div>
+<ol class="org-ol">
+<li>Manually set status to up. (This step is the reason I opted for the previous method)</li>
+</ol>
+<div class="org-src-container">
+<pre class="src src-bash">ip link set br10 up
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge21dc23" class="outline-3">
+<h3 id="orge21dc23"><span class="section-number-3">6.2.</span> iptables (Firewall)</h3>
+<div class="outline-text-3" id="text-6-2">
+<p>
+Consider a home network for yourself. The network will consist of devices which you would like to be connected to the internet such as your desktop and phones; and there will also be devices such as security cameras and network attached storage devices which you don&rsquo;t want to be exposed to outsiders. A firewall simply keeps intruders out and keeps devices in.
+</p>
+
+<p>
+There are 3 main types of firewalls:
+</p>
+<ol class="org-ol">
+<li>Packet filtering</li>
+<li>Circuit relay</li>
+<li>Application gateway</li>
+</ol>
+
+<p>
+iptables is a software based packet filtering firewall which is provided in the Linux kernel. After compiling the kernel with iptables support, we can install the iptables <i>userspace</i> program to configure the rules of the firewall.
+</p>
+
+<p>
+iptables provide five hooks (events which trigger actions) for us to define a &ldquo;chain&rdquo; of rules. When adding rules to chains we can either define them directly on the existing 5 main chains or define a sub-chain and add that as rule onto the main chains.
+</p>
+
+<p>
+The five main hooks are
+</p>
+<ol class="org-ol">
+<li>INPUT</li>
+<li>OUTPUT</li>
+<li>FORWARD</li>
+<li>PREROUTING</li>
+<li>POSTROUTING</li>
+</ol>
+
+<p>
+The main commands we will execute are creating a new user chain (-N); appending a rule to a chain (-A); or applying a policy on one of the default chains (-P) either ACCEPT or DROP. We can specify more granular control over packet matching when appending a rule to a chain by matching the &ldquo;conntrack&rdquo; to &ldquo;ctstate&rdquo; of the packet.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">iptables -N &lt;user-chain&gt; <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Create a new user chain</span>
+iptables -P &lt;chain&gt; &lt;action&gt; <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Specify a policy on one of the default chain (either DROP or ACCEPT)</span>
+iptables -A &lt;chain&gt; -m &lt;match&gt; -j &lt;target&gt; <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Append rule to chain by specifying a match criteria and then a target (i.e. action to execute)</span>
+</pre>
+</div>
+
+<p>
+The commands for setting up a state-ful firewall and enable packets originating from the sandbox to the host system are outlined below. They are adapted from <a href="https://wiki.gentoo.org/wiki/User:Sakaki/Sakaki%27s_EFI_Install_Guide/Sandboxing_the_Firefox_Browser_with_Firejail">Sakaki&rsquo;s Sandboxing the Firefox browser with Firejail tutorial</a> and <a href="https://wiki.archlinux.org/title/Simple_stateful_firewall">Arch Wiki Stateful Firewall</a> resources.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Variables for sandbox</span>
+<span style="color: #842879;">NETIF</span>=<span style="color: #4F894C;">"wlp2"</span>
+<span style="color: #842879;">SUBNET</span>=<span style="color: #4F894C;">"10.10.20.0/24"</span>
+
+iptables --flush <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Clears current rules</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Create user defined chains</span>
+iptables -N TCP
+iptables -N UDP
+
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+iptables -P INPUT DROP
+iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT  <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Accept connections from established connections</span>
+iptables -A INPUT -i lo -j ACCEPT <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Accept traffic from loopback device</span>
+iptables -A INPUT -m conntrack --ctstate INVALID -j DROP <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Specifically drop packets with INVALID state</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Add chains for NEW packets</span>
+iptables -A INPUT -p udp -m conntrack --ctstate NEW -j UDP
+iptables -A INPUT -p tcp --syn -m conntrack --ctstate NEW -j TCP
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Rules for isolated container</span>
+iptables -A FORWARD -s <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">SUBNET</span><span style="color: #4F894C;">"</span> -p tcp --dport <span style="color: #97365B; font-weight: bold;">25</span> -j DROP <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">prevent sandbox from forwarding emails (i.e. block SMTP)</span>
+iptables -t nat -A POSTROUTING -s <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">SUBNET</span><span style="color: #4F894C;">"</span> -o <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">NETIF</span><span style="color: #4F894C;">"</span> -j MASQUERADE
+</pre>
+</div>
+
+<p>
+If you are using systemd, and would like to automatically restore your iptables configuration when booting, then you can use the provided iptables-restore service which automatically loads a configuration file found at /var/lib/iptables/rules-save.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">iptables-save -f /var/lib/iptables/rules-save <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">systemd automatically loads this file with the iptables.service</span>
+systemctl enable iptables-restore
+
+iptables-restore /etc/iptables/iptables.rules <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">(optionally) run anytime changes are made to any iptables file</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org6383704" class="outline-2">
+<h2 id="org6383704"><span class="section-number-2">7.</span> Display Server Isolation with X&rsquo;s Xephyr</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+The GNU/Linux operating system is made up any different components. One being the aforementioned Linux kernel. Another is the display server which is responsible for providing a graphical interface. Without the display server we would just be able to interact with the system through the shell (i.e. a text interface). Most GNU+Linux distributions use the Xorg display server. When an application wants to render something on screen, it will have to communicate with the display server. The display server must also track all the inputs the user makes to the system, as these will change what needs to be drawn on screen.
+</p>
+
+<p>
+Unfortunately, given that there are many applications communicating with the display server there is a security concern one application may try and &ldquo;listen&rdquo; to the inputs of another fellow application. The Sakaki&rsquo;s main tutorial shows how you can do this yourself. Nested display servers overcome this security challenge. Thus we can configure an application to communicate to a single display server nested in the main host server and appear within a window on the host system. The application will have no knowledge of any other applications connected to the host system. The main challenge to this for the Firefox browser is resizing the window once the nested window is drawn. Again the main tutorial provides code to overcome this issue, but I have opted to return to this at a later stage.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org4a8241d" class="outline-2">
+<h2 id="org4a8241d"><span class="section-number-2">8.</span> Putting it all together</h2>
+<div class="outline-text-2" id="text-8">
+<p>
+The command to launch firefox in firejail with the network settings we made earlier and in a nested X display server is as follows:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">/usr/bin/firejail --x11=xephyr --name=firefox --net=firefox-br --profile=/etc/firejail/firefox.profile openbox --startup /usr/lib64/firefox/firefox %u
+</pre>
+</div>
+
+<p>
+If, like me, you have opted to skip the nested display step, you can run the following:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">/usr/bin/firejail --name=firefox --net=firefox-br --profile=/etc/firejail/firefox.profile /usr/bin/firefox-bin
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgab37a66" class="outline-2">
+<h2 id="orgab37a66"><span class="section-number-2">9.</span> References</h2>
+<div class="outline-text-2" id="text-9">
+<ul class="org-ul">
+<li><a href="https://wiki.gentoo.org/wiki/User:Sakaki/Sakaki%27s_EFI_Install_Guide/Sandboxing_the_Firefox_Browser_with_Firejail">Sakaki&rsquo;s Gentoo Firejail Tutorial</a></li>
+<li><a href="https://www.man7.org/linux/man-pages/man7/user_namespaces.7.html">User namespaces</a></li>
+<li><a href="https://wiki.archlinux.org/title/Iptables">Arch Wiki Iptables</a></li>
+<li><a href="https://wiki.archlinux.org/title/Simple_stateful_firewall">Simple Stateful Firewall</a></li>
+</ul>
+</div>
+</div>

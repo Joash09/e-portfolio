@@ -7,6 +7,14 @@ export class BlogsService {
 
   BlogPosts: BlogPost[] = [
     {
+      id: 'Containers',
+      title: 'Application sandboxes. From chroot jail to Firejail',
+      date: '18-05-2022',
+      thumbnail: 'jail.jpg',
+      description: 'Investigating a first principals approach to containers with chroot and systemd-nspawn tools',
+      keywords: ['chroot', 'jail', 'systemd-nspawn', 'containers', 'Linux', 'Kernel namespace', 'Firejail', 'iptables', 'firewall', 'networking', 'bridge', 'systemd networkd', 'Xephyr', 'Xorg']
+    },
+    {
       id: 'NetworkingOverview',
       title: 'Understanding networking through the OSI model',
       date: '23-01-2023',
@@ -20,7 +28,7 @@ export class BlogsService {
       date: '19-12-2022',
       thumbnail: 'etf.jpg',
       description: 'Discussing the history, pros and cons of passive investing with ETFs',
-      keywords: ['passive', 'investing', 'ETFs', 'active', 'finance', 'grossman-stigletz paradox', 'ETF bubble']
+      keywords: ['passive', 'investing', 'ETFs', 'active', 'finance', 'grossman-stigletz paradox', 'ETF bubble', 'electronically traded funds']
     },
     {
       id: 'KernelDevelopment',
@@ -28,7 +36,7 @@ export class BlogsService {
       date: '17-09-2022',
       thumbnail: 'Tux.png',
       description: 'Learning the process of finding work to be done on the Linux kernel and submittong patches to the community',
-      keywords: ['Linux kernel', 'C Programming Language', 'Drivers', 'Git', 'Gmail']
+      keywords: ['Linux kernel', 'C Programming Language', 'Drivers', 'Git', 'Gmail', 'Programming collaboration']
     },
     {
       id: 'WebAssembly',
@@ -44,15 +52,7 @@ export class BlogsService {
       date: '30-07-2022',
       thumbnail: 'kernel.jpg',
       description: 'Learning how to update the kernel and create a second configuration for managing NVIDIA drivers',
-      keywords: ['Linux', 'Linux kernel', 'NVIDIA drivers', 'Gentoo']
-    },
-    {
-      id: 'ChrootAndNspawn',
-      title: 'Chroot jail and systemd-nspawn containers',
-      date: '11-07-2022',
-      thumbnail: 'jail.jpg',
-      description: 'Investigating a first principals approach to containers with chroot and systemd-nspawn tools',
-      keywords: ['chroot', 'systemd-nspawn', 'containers', 'Linux', 'Steam']
+      keywords: ['Linux', 'Linux kernel', 'NVIDIA drivers', 'Gentoo', 'systemd', 'modprobe', 'kernel modules', 'GRUB2']
     },
     {
       id: 'DeployStaticSite',
