@@ -1,28 +1,27 @@
 <div id="table-of-contents" role="doc-toc">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents" role="doc-toc">
-<ul>
-<li><a href="blog-view/NetworkingOverview#orgace1696">1. Background</a></li>
-<li><a href="blog-view/NetworkingOverview#org94b65b9">2. Physical Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#org9d8d5b8">3. Data Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#org9838821">4. Network Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#org08f4922">5. Transport Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#org082f7d1">6. Session Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#orgf012e3e">7. Presentation Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#orga913eab">8. Application Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#orge27a6ed">9. Commonly used networking terms</a>
-<ul>
-<li><a href="blog-view/NetworkingOverview#org7ad8cb7">9.1. Firewall</a></li>
-<li><a href="blog-view/NetworkingOverview#orga28cfd4">9.2. Proxy</a></li>
-</ul>
-</li>
-<li><a href="blog-view/NetworkingOverview#orgc040a98">10. An example: Storage Area Network (SAN)</a></li>
-<li><a href="blog-view/NetworkingOverview#orgb987e0f">11. References</a></li>
-</ul>
-</div>
-</div>
+            <h2>Table of Contents</h2>
+            <div id="text-table-of-contents" role="doc-toc">
+                <ul>
+                    <li><a href="blog-view/NetworkingOverview#orgace1696">1. Background</a></li>
+                    <li><a href="blog-view/NetworkingOverview#org94b65b9">2. Physical Layer</a></li>
+                    <li><a href="blog-view/NetworkingOverview#org9d8d5b8">3. Data Layer</a></li>
+                    <li><a href="blog-view/NetworkingOverview#org9838821">4. Network Layer</a></li>
+                    <li><a href="blog-view/NetworkingOverview#org08f4922">5. Transport Layer</a></li>
+                    <li><a href="blog-view/NetworkingOverview#org082f7d1">6. Session Layer</a></li>
+                    <li><a href="blog-view/NetworkingOverview#orgf012e3e">7. Presentation Layer</a></li>
+                    <li><a href="blog-view/NetworkingOverview#orga913eab">8. Application Layer</a></li>
+                    <li><a href="blog-view/NetworkingOverview#orge27a6ed">9. Commonly used networking terms</a>
+                        <ul>
+                            <li><a href="blog-view/NetworkingOverview#org7ad8cb7">9.1. Firewall</a></li>
+                            <li><a href="blog-view/NetworkingOverview#orga28cfd4">9.2. Proxy</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="blog-view/NetworkingOverview#orgc040a98">10. An example: Storage Area Network (SAN)</a></li>
+                    <li><a href="blog-view/NetworkingOverview#orgb987e0f">11. References</a></li>
+                </ul>
+            </div>
+        </div>
 
-<div id="outline-container-orgace1696" class="outline-2">
 <h2 id="orgace1696"><span class="section-number-2">1.</span> Background</h2>
 <div class="outline-text-2" id="text-1">
 <p>
@@ -48,7 +47,7 @@ By abstracting networking functionality into layers a web programmer never has t
 <h2 id="org94b65b9"><span class="section-number-2">2.</span> Physical Layer</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-The lowest layer is the physical layer. This layer refers to the communication medium over which data is sent. To layman, fiber optics cables or twisted coaxial cables will come to mind. These mediums transmit data over light or electrical signals respectively. What is less apparent is also knowing how we represent these signals physically. In the case of an electrical signal a high bit could be represented as a high voltage or a low voltage. Alternatively by sending using two signals a single bit could be represented by the sum of signals. This is referred to line coding and although is not thought of much, it effects how reliable our signal is and how far it can be transmitted.
+    The lowest layer is the physical layer. This layer refers to the communication medium over which data is sent. To the layman, fiber optics cables or twisted coaxial cables will come to mind. These mediums transmit data over light or electrical signals respectively. What is less apparent is also knowing how we represent these signals physically. In the case of an electrical signals a bit (binary digit) could be represented as a high voltage or a low voltage. Alternatively, if we use two signals, a single bit bit can be represented by the sum of those two signals. Using two signals reduces the possibility of noise corrupting the data. The physical representation of signals is referred to as <em>line coding</em> and although is not given much thought, it effects how reliable our signal is and how far it can be transmitted.
 </p>
 </div>
 </div>
@@ -68,16 +67,16 @@ For example 802.11ac and 802.11ax defines WiFi versions 5 and 6 respectively.
 </p>
 
 <p>
-Computers communicating over a LAN will need to agree on a unique way of identifying each other on the network.
-IEEE 802 defines a Medium Access Control (MAC) number which is a unique number given by the IEEE standards and is assigned to network devices when manufactured.
-The computers should as agree upon the structure of the data.
+Computers communicating over a LAN all need to agree on a unique way of identifying each other on the network.
+IEEE 802 defines a Medium Access Control (MAC) number which is a unique number given by the IEEE standard and is assigned to network devices when manufactured.
+The computers should also agree upon the structure of the data.
 Data sent over an Ethernet network must be split into data frames (also known as packets) of a set size.
-These data frames will also include the source and destination MAC addresses, the data itself and additional redundant data (referred to check redundant cycle [CRC]) that the receiving computer uses to ensure the integrity of the data.
+These data frames comprise of the source and destination MAC addresses, the data itself and additional redundant data (referred to check redundant cycle [CRC]) that the receiving computer uses to ensure the integrity of the incoming data.
 The physical device used to connect and transfer data in an Ethernet network is called a <b>switch</b>. Devices connected to an Ethernet network must include a Network Interface Card (NIC), to translate Ethernet frames into useful digital logic.
 </p>
 
 <p>
-Finally, it is important to note that at this layer, the medium over which data is sent is not defined as that forms part of physical layer. An Ethernet network can send data using twisted coaxial cables or fiber optic cables. So called &ldquo;Ethernet&rdquo; cables are more accurately described as twisted pair cables with a RJ-45 port.
+Finally, it is important to note that at this layer, the medium over which data is sent is not specified, as that forms part of physical layer. An Ethernet network can send data using twisted coaxial cables, radio frequency signals or fiber optic cables. So called &ldquo;Ethernet&rdquo; cables are more accurately described as twisted pair cables with a RJ-45 port.
 </p>
 </div>
 </div>
@@ -86,19 +85,19 @@ Finally, it is important to note that at this layer, the medium over which data 
 <h2 id="org9838821"><span class="section-number-2">4.</span> Network Layer</h2>
 <div class="outline-text-2" id="text-4">
 <p>
-This layer is only interested in ensuring data sent from a source node to a destination node over <b>connected networks</b>. Networks are connected b a device called a <b>gateway</b>.
-The internet (shorted from <i>interconnected networks</i>) is an example of this concept. Specifically, the internet is an interconnected network which speaks the Internet Protocol (IP) language.
-As an example of the IP protocol, a node in one Ethernet network cannot send data to another node in another Ethernet network only using a MAC address as identification, as the second MAC address does not exist in the first Ethernet network.
+This layer is only interested in ensuring data sent from a source node to a destination node over <b>connected networks</b>. Networks are connected via a device called a <b>gateway</b>.
+The internet (shorted form of <i>interconnected networks</i>) is an example of this concept. Specifically, the internet is an interconnected network which speaks the Internet Protocol (IP) language.
+As an example of the IP protocol, a node in one Ethernet network cannot send data to another node in another Ethernet network with only a MAC address as identification, as the second MAC address will not exist in the first Ethernet network.
 Hence, a new type of address must be used to identify networks, called an IP address. If the destination IP address does not belong to a node in the local network, a <b>router</b> (a type of gateway device specific to connected networks using IP) will pass the data to another network by means of a forwarding table.
 To make IP address look ups more efficient, IP addresses are designed to be grouped together into ranges.
-The most significant digits of the IP address provide the most course control over where the packet goes. Initially, the router only needs to consider these digits.
-Gradually the least significant digits provide the fine grained control to the exact destination.
+The most significant digits of the IP address provide the most coarse control over where the packet goes. Initially, the router only needs to consider these digits.
+Gradually the least significant digits provide finer grained control as to the exact destination.
 Hence, when an IP address is setup on an Ethernet network, a <b>subnet mask</b> is also defined to quickly calculate the range of IP addresses for the other nodes on the network.
 Then if the destination IP address falls outside of the available local network addresses, the router will forward the data packet.
 </p>
 
 <p>
-The number of bits allocated to the source and destination addresses for an IP address is significant as they directly correspond to the number of devices that can be connected on the internet. Most commonly traffic is sent with version 4 of the internet protocol (IPv4) which allocates 32 bits to the address. Today the number of devices has surpassed the capabilities of IPv4. Two solutions are currently used:
+The number of bits allocated to the source and destination addresses for an IP address is significant as they directly correspond to the number of devices that can be connected on the internet. Most commonly traffic is sent with version 4 of the internet protocol (IPv4) which allocates 32 bits to the address. Today the number of devices has surpassed the capabilities of IPv4. Two solutions are currently used to overcome these limitations:
 </p>
 <ol class="org-ol">
 <li>A Network Address Translation (NAT) device allows us to represent a group of IP addresses with a single public address, hence decreasing the number of public IP addresses needed and allowing reuse of local and private IP addresses</li>
@@ -106,10 +105,10 @@ The number of bits allocated to the source and destination addresses for an IP a
 </ol>
 
 <p>
-Bare in mind, the IP protocol does not replace the Ethernet frames discussed in the Data Layer. Data originating in a local area network must still travel the Ethernet network as an Ethernet frame. The additional IP protocol information included within the Ethernet&rsquo;s payload.
+Bare in mind, the IP protocol does not replace the Ethernet frames discussed in the Data Layer. Data originating in a local area network must still traverse the Ethernet network as an Ethernet frame. The additional IP protocol information is included within the Ethernet&rsquo;s payload.
 This begs the question, which MAC address must the sender include in the Ethernet frame? As previously explained, it cannot be the MAC address of the destination node.
 The sender instead will include the MAC address of the router, which it obtains through an <b>Address Resolution Protocol (ARP)</b>.
-Essentially, the ARP broadcasts a data frame requesting the router&rsquo;s MAC address.
+Essentially, the ARP broadcasts a data frame requesting the router&rsquo;s MAC address and the router oblidges.
 </p>
 </div>
 </div>
@@ -270,5 +269,4 @@ Even with an acknowledgment from the sender there is no guarantee for successful
 </p></div></div>
 
 
-</div>
 </div>
