@@ -2,17 +2,26 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="blog-view/KernelManagement#org10f2b67">1. Basic Kernel Upgrade</a></li>
-<li><a href="blog-view/KernelManagement#org8ce754a">2. Why a 2nd configuration for NVIDIA drivers</a></li>
-<li><a href="blog-view/KernelManagement#org42ea142">3. Creating a 2nd kernel configuration</a></li>
-<li><a href="blog-view/KernelManagement#org64bfd63">4. Notes on managing a second kernel configuration</a></li>
+<li><a href="blog-view/KernelManagement#orge56ebf5">1. Basic Kernel Upgrade</a></li>
+<li><a href="blog-view/KernelManagement#orgf1dab60">2. Use case for multiple kernel configurations</a></li>
+<li><a href="blog-view/KernelManagement#org5728634">3. Building multiple kernel configurations</a>
+<ul>
+<li><a href="blog-view/KernelManagement#org634b897">3.1. Separate copy of the kernel source</a></li>
+<li><a href="blog-view/KernelManagement#org6415304">3.2. Bootloader options</a></li>
+</ul>
+</li>
+<li><a href="blog-view/KernelManagement#orgaf114c5">4. References</a></li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-org10f2b67" class="outline-2">
-<h2 id="org10f2b67"><span class="section-number-2">1.</span> Basic Kernel Upgrade</h2>
+<div id="outline-container-orge56ebf5" class="outline-2">
+<h2 id="orge56ebf5"><span class="section-number-2">1.</span> Basic Kernel Upgrade</h2>
 <div class="outline-text-2" id="text-1">
+<p>
+Before highlighting the process of maintaining two or more kernel configurations, here lies the systematic process of building and installing a single kernel.
+</p>
+
 <div class="org-src-container">
 <pre class="src src-bash">
 <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Following 2 steps are specific to Gentoo</span>
@@ -30,31 +39,47 @@ eselect kernel list
 <span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> install
 
 <span style="color: #9A7500;">sudo</span> grub-mkconfig -o /boot/grub/grub.cfg <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">update grub2 bootloader</span>
+</pre>
+</div>
 
-<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">if you have some 3rd party firmware (e.g. rtl8188eu WIFI drivers, in my case), remember to install them now</span>
-<span style="color: #9A7500;">cd</span> /path/to/drivers
-<span style="color: #9A7500;">make</span>
-<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> install
+<p>
+Certain software packages are built against the current kernel which the package manager finds in /usr/src/linux directory. The NVIDIA drivers are a primary example of this. After a new kernel install I will rebuild such packages with the following command.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">sudo</span> emerge --ask @module-rebuild <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">specific to Gentoo and its portage package manager</span>
 </pre>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org8ce754a" class="outline-2">
-<h2 id="org8ce754a"><span class="section-number-2">2.</span> Why a 2nd configuration for NVIDIA drivers</h2>
+<div id="outline-container-orgf1dab60" class="outline-2">
+<h2 id="orgf1dab60"><span class="section-number-2">2.</span> Use case for multiple kernel configurations</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-NVIDIA drivers are proprietary. Unlike most open source drivers they are not built into the kernel but instead loaded as a kernel module at start up. (Loadable modules is a kernel feature that must be configured). The kernel interacts with driver modules through an Application Binary Interface (ABI). However when upgrading the kernel, new kernel configurations may change the ABI, meaning NVIDIA will need to update the drivers accordingly. The community can&rsquo;t do it since NVIDIA drivers are (again) proprietary software. As a result, it may be worth keeping a second kernel in case the NVIDIA drivers stop working with the current kernel version. Alternatively, you could refrain from updating the kernel if it will break the NVIDIA drivers and wait until NVIDIA updates the drivers. I decided to have 2 configurations, because nothing worthwhile came easy.
+NVIDIA drivers are proprietary. Unlike most open source drivers they are not built into the kernel but instead loaded as a kernel module at start up. (Loadable modules is a kernel feature that must be enabled). The kernel interacts with driver modules through an Application Binary Interface (ABI). However when upgrading the kernel, new kernel configurations may change the ABI, meaning NVIDIA will need to update the drivers accordingly. The community can&rsquo;t do it since NVIDIA drivers are (again) proprietary software. As a result, it may be worth keeping a second kernel in case the NVIDIA drivers stop working with the current kernel version. Alternatively, you could refrain from updating the kernel if it will break the NVIDIA drivers and wait until NVIDIA updates the drivers. I having two kernel configurations, will give me the flexibility to use NVIDIA drivers for the most part, but if something had to break, I could roll back to the open source nouveau driver.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org42ea142" class="outline-2">
-<h2 id="org42ea142"><span class="section-number-2">3.</span> Creating a 2nd kernel configuration</h2>
+<div id="outline-container-org5728634" class="outline-2">
+<h2 id="org5728634"><span class="section-number-2">3.</span> Building multiple kernel configurations</h2>
 <div class="outline-text-2" id="text-3">
+<p>
+There are 2 options available to having two or more kernel configurations on your system. The first is to keep a second copy of the kernel source and the second is by building the differing parts of the kernel as kernel modules and passing GRUB options to activate/deactivate desired parts of the kernel.
+</p>
+</div>
+
+<div id="outline-container-org634b897" class="outline-3">
+<h3 id="org634b897"><span class="section-number-3">3.1.</span> Separate copy of the kernel source</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+In the case of maintaining two copies of the kernel sources, we can use the kernel prefix option to differentiate between kernel builds. With the prefix set and second kernel configured accordingly, you can build and install the kernel using the standard process outlined above. The extension is appended to the kernel object and GRUB will treat it as a separate kernel, hence you can select it in the bootloader menu.
+</p>
+
 <div class="org-src-container">
 <pre class="src src-bash"><span style="color: #9A7500;">cd</span> /usr/src
-<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">cp</span> -r /usr/src/linux-current-version /usr/src/linux-your-extension
+<span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">cp</span> -r /usr/src/linux-current-version /usr/src/linux-current-version-your-extension
 
 eselect kernel list <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">You should be able to see kernel with extension</span>
 <span style="color: #9A7500;">sudo</span> eselect kernel set <span style="color: #97365B; font-weight: bold;">2</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">set symbolic link</span>
@@ -62,31 +87,121 @@ eselect kernel list <span style="color: #8b94a5;"># </span><span style="color: #
 <span style="color: #9A7500;">sudo</span> <span style="color: #9A7500;">make</span> menuconfig  <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">you should set an extension to this kernel. See General setup -&gt; Local version - append to kernel release</span>
 </pre>
 </div>
-
-<p>
-How to configure your kernel to support NVIDIA drivers is well <a href="https://wiki.gentoo.org/wiki/NVIDIA/nvidia-drivers">documented</a> on Gentoo&rsquo;s Wiki and won&rsquo;t be repeated here. I just wanted to record how to create a second kernel configuration up and running as it wasn&rsquo;t immediately apparent to me.
-</p>
 </div>
 </div>
 
-<div id="outline-container-org64bfd63" class="outline-2">
-<h2 id="org64bfd63"><span class="section-number-2">4.</span> Notes on managing a second kernel configuration</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-org6415304" class="outline-3">
+<h3 id="org6415304"><span class="section-number-3">3.2.</span> Bootloader options</h3>
+<div class="outline-text-3" id="text-3-2">
 <p>
-In my system, almost all packages are built from source, unlike the more commonly installing prebuilt binaries. Certain software packages are built against the current kernel which the package manager finds in /usr/src/linux directory. The NVIDIA drivers are a primary example of this. A upgrade flow, that works for me is as follows:
+Instead of building to different versions of the kernel, we can instead build a single kernel with the desired configurable parts built as modules.
+The &ldquo;linux&rdquo; GRUB command to boot the kernel will then include parameters which will blacklist kernel modules depending on the selected configuration.
 </p>
 
-<ol class="org-ol">
-<li>Ensure my main kernel is selected before upgrading (i.e. the symbolic link to /usr/src/linux points to non-nvidia kernel version)</li>
-<li>Upgrade the OS packages</li>
-<li>Reboot with main kernel (booting with NVIDIA kernel will cause Xorg to complain when starting display server)</li>
-<li><p>
-Select nvidia kernel and rebuild NVIDIA drivers
+<p>
+We can add multiple GRUB entries by editing the &ldquo;menu entries&rdquo; in /boot/grub/grub.cfg file to include boot time options. In the example below I use modprobe.blacklist to prevent the nouveau kernel module from loading and set systemd environment variable to nvidia. I will also have a second menuentry blacklisting the nvidia kernel module and setting the systemd environment variable to &ldquo;nouveau.&rdquo; A custom systemd service script will load the desired kernel modules depending on the environment variables set.
+</p>
+
+<p>
+Warning! Don&rsquo;t just copy paste. Your menuentry and parameters will most likely differ. Only consider the modprobe and systemd.setenv parameters.
 </p>
 <div class="org-src-container">
-<pre class="src src-bash"><span style="color: #9A7500;">sudo</span> emerge --ask @module-rebuild <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">specific to Gentoo and its portage package manager</span>
+<pre class="src src-bash">
+menuentry <span style="color: #4F894C;">'Gentoo GNU/Linux'</span> --class gentoo --class gnu-linux --class gnu --class os $<span style="color: #842879;">menuentry_id_option</span> <span style="color: #4F894C;">'gnulinux-simple-aaabbbccc'</span> <span style="color: #3B6EA8;">{</span>
+
+        <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+        linux       /vmlinuz-6.1.19-gentoo modprobe.blacklist=nouveau systemd.setenv=<span style="color: #842879;">GPUMOD</span>=nvidia
+        <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+<span style="color: #3B6EA8;">}</span>
 </pre>
-</div></li>
-</ol>
+</div>
+
+<p>
+Manually editing the grub.cfg files is tedious and not recommended. Every time a new version of the kernel is built and grub is updated, the changes are lost. Instead, it is better to programmatically tell GRUB how to configure itself. There are two directories available to us, namely: <i>etc/default/grub and /etc/grub.d</i>. If wanted a single configuration entry, we could set the GRUB<sub>CMDLINE</sub><sub>LINUX</sub> variable to append the parameters we wish to include in the linux command. Alternatively, we can create templates in the <i>etc/grub.d</i> folder. This folder contains the following files, of which we are only interested in 40_<sub>custom</sub>.
+</p>
+
+<ul class="org-ul">
+<li>00_<sub>header</sub></li>
+<li>10_<sub>linux</sub></li>
+<li>40_<sub>custom</sub></li>
+<li>41_<sub>custom</sub></li>
+</ul>
+
+<p>
+The number prepend to the file name sets to the order in which GRUB2 will execute these files, hence the two custom files are last. To create my template, I am going to copy the output from what GRUB had previously generated. Consider the following example, specifically the line running the &ldquo;linux&rdquo; command.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">#</span><span style="color: #8b94a5;">!/bin/</span><span style="color: #3B6EA8;">sh</span>
+<span style="color: #3B6EA8;">exec</span> tail -n +3 $<span style="color: #97365B; font-weight: bold;">0</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">This file provides an easy way to add custom menu entries.  Simply type the</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">menu entries you want to add after this comment.  Be careful not to change</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">the 'exec tail' line above.</span>
+menuentry <span style="color: #4F894C;">'GENTOO - NVIDIA'</span> --class gentoo --class gnu-linux --class gnu --class os $<span style="color: #842879;">menuentry_id_option</span> <span style="color: #4F894C;">'gnulinux-simple-aaaabbbbccccdddd'</span> <span style="color: #3B6EA8;">{</span>
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+    <span style="color: #9A7500;">echo</span>    <span style="color: #4F894C;">'Loading Linux 6.1.19-gentoo ...'</span>
+    linux   /vmlinuz-6.1.19-gentoo <span style="color: #842879;">root</span>=/dev/mapper/vgmain-lvolhome ro modprobe.blacklist=nouveau systemd.setenv=<span style="color: #842879;">GPUMOD</span>=nvidia
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+
+<p>
+As you can see, hard-coding the kernel version in the GRUB template is a limitation. There are two options from here, modifying the linux file by writing BASH code to achieve the functionality you desire or by using symbolic links. The former proved more difficult. A symbolic link to a kernel image without a version number will allow us to hard-code a kernel image which will automatically be updated every time a new kernel is installed.
+</p>
+
+<p>
+We can automate this process of linking a new kernel image to the hard-coded one by creating a post-install script in <i>etc/kernel/postinst.d</i> directory. In my attempt I couldn&rsquo;t create a symbolic link due to my /boot partition being formatted as vfat. However, to get around this, I was happy enough just having an additional copy of the latest kernel (thankfully, this isn&rsquo;t an embedded system). Ensure the script file has the executable bit set and rerun &ldquo;make install&rdquo; to run the script.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">#</span><span style="color: #8b94a5;">!/bin/</span><span style="color: #3B6EA8;">bash</span>
+
+<span style="color: #842879;">KERNEL_VERSION</span>=<span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">1</span><span style="color: #4F894C;">"</span>
+<span style="color: #842879;">KERNEL_IMAGE</span>=<span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">2</span><span style="color: #4F894C;">"</span>
+
+<span style="color: #9A7500;">cp</span> $<span style="color: #842879;">KERNEL_IMAGE</span> /boot/vmlinuz <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Should be </span><span style="color: #8b94a5;">ln</span><span style="color: #8b94a5;"> -sf $KERNEL_IMAGE /boot/vmlinuz in the future</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">ln</span><span style="color: #8b94a5;"> -sf /boot/initramfs-$KERNEL_VERSION.img /boot/initramfs.img # If you are builindg initramfs</span>
+</pre>
+</div>
+
+<p>
+The template for GRUB can then be updated to point to the copy of the kernel image. Ensure the template file has the executable bit enabled, and rerun grub-mkconfig.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">#</span><span style="color: #8b94a5;">!/bin/</span><span style="color: #3B6EA8;">sh</span>
+<span style="color: #3B6EA8;">exec</span> tail -n +3 $<span style="color: #97365B; font-weight: bold;">0</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">This file provides an easy way to add custom menu entries.  Simply type the</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">menu entries you want to add after this comment.  Be careful not to change</span>
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">the 'exec tail' line above.</span>
+menuentry <span style="color: #4F894C;">'GENTOO - NVIDIA'</span> --class gentoo --class gnu-linux --class gnu --class os $<span style="color: #842879;">menuentry_id_option</span> <span style="color: #4F894C;">'gnulinux-simple-aaaabbbbccccdddd'</span> <span style="color: #3B6EA8;">{</span>
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+    <span style="color: #9A7500;">echo</span>    <span style="color: #4F894C;">'Loading Latest Linux kernel with NVIDIA driver settings ...'</span>
+    linux   /vmlinux <span style="color: #842879;">root</span>=/dev/mapper/vgmain-lvolhome ro modprobe.blacklist=nouveau systemd.setenv=<span style="color: #842879;">GPUMOD</span>=nvidia
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+<span style="color: #3B6EA8;">}</span>
+menuentry <span style="color: #4F894C;">'GENTOO - Nouveau'</span> --class gentoo --class gnu-linux --class gnu --class os $<span style="color: #842879;">menuentry_id_option</span> <span style="color: #4F894C;">'gnulinux-simple-aaaabbbbccccdddd'</span> <span style="color: #3B6EA8;">{</span>
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+    <span style="color: #9A7500;">echo</span>    <span style="color: #4F894C;">'Loading Latest Linux kernel with Nouveau driver settings ...'</span>
+    linux   /vmlinux <span style="color: #842879;">root</span>=/dev/mapper/vgmain-lvolhome ro modprobe.blacklist=nvidia systemd.setenv=<span style="color: #842879;">GPUMOD</span>=nouveau
+    <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">...</span>
+<span style="color: #3B6EA8;">}</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgaf114c5" class="outline-2">
+<h2 id="orgaf114c5"><span class="section-number-2">4.</span> References</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li><a href="https://wiki.gentoo.org/wiki/NVIDIA/nvidia-drivers">Gentoo NVIDIA drivers</a></li>
+<li><a href="https://wiki.gentoo.org/wiki/Nouveau_%26_nvidia-drivers_switching">Gentoo Wiki NVIDIA drivers switching</a></li>
+<li><a href="https://help.ubuntu.com/community/Grub2/Setup">Ubuntu GRUB2 Setup</a></li>
+</ul>
 </div>
 </div>

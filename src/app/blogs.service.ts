@@ -9,7 +9,7 @@ export class BlogsService {
     {
       id: 'Containers',
       title: 'Application sandboxes. From chroot jail to Firejail',
-      date: '18-05-2022',
+      date: '18-05-2023',
       thumbnail: 'jail.jpg',
       description: 'Investigating a first principals approach to containers with chroot and systemd-nspawn tools',
       keywords: ['chroot', 'jail', 'systemd-nspawn', 'containers', 'Linux', 'Kernel namespace', 'Firejail', 'iptables', 'firewall', 'networking', 'bridge', 'systemd networkd', 'Xephyr', 'Xorg']
@@ -51,8 +51,8 @@ export class BlogsService {
       title: 'Managing multiple Linux kernel configurations',
       date: '30-07-2022',
       thumbnail: 'kernel.jpg',
-      description: 'Learning how to update the kernel and create a second configuration for managing NVIDIA drivers',
-      keywords: ['Linux', 'Linux kernel', 'NVIDIA drivers', 'Gentoo', 'systemd', 'modprobe', 'kernel modules', 'GRUB2']
+      description: 'Learning how to update the kernel and create a second configuration for managing NVIDIA drivers with GRUB2 bootloader templates',
+      keywords: ['Linux', 'Linux kernel', 'NVIDIA drivers', 'Gentoo', 'systemd', 'modprobe', 'kernel modules', 'GRUB2', 'GRUB2 configuration', 'graphics switching', 'multiple Linux kernels', 'kernel paramters']
     },
     {
       id: 'DeployStaticSite',
