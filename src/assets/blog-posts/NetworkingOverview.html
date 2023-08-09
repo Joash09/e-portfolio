@@ -16,7 +16,6 @@
                             <li><a href="blog-view/NetworkingOverview#orga28cfd4">9.2. Proxy</a></li>
                         </ul>
                     </li>
-                    <li><a href="blog-view/NetworkingOverview#orgc040a98">10. An example: Storage Area Network (SAN)</a></li>
                     <li><a href="blog-view/NetworkingOverview#orgb987e0f">11. References</a></li>
                 </ul>
             </div>
@@ -219,28 +218,6 @@ Your network may be made up of multiple resources. If an external users makes a 
 </p>
 </div>
 </div>
-</div>
-</div>
-
-
-<div id="outline-container-orgc040a98" class="outline-2">
-<h2 id="orgc040a98"><span class="section-number-2">10.</span> An example: Storage Area Network (SAN)</h2>
-<div class="outline-text-2" id="text-10">
-<p>
-A storage area network is a network of computing nodes specifically designed for data storage.
-Multiple storage devices are accessed by multiple servers. Multiple devices add redundancy in the case of faults.
-Additionally, the benefits of a SAN over the more commonly used Network Attached Disk (NAS) is access to raw storage blocks versus access to files.
-The network of storage devices and servers is accomplished with &ldquo;special&rdquo; switches, but instead of using the technologies discussed, SAN networks use Fibre channel technology stack (notice spelling as compared to fiber optics).
-Fibre channel is a layered stack separate from the Internet-centric examples I gave explaining the OSI model.
-</p>
-
-<ul class="org-ul">
-<li>At the lowest OSI layer fibre channel achieved with either fiber optics or copper cabling.</li>
-<li>The data layer protocol for fibre channel is Small Computer System Interface (SCSI). SCSI frames are different to Ethernet frames and hence the need for different types of switches. Instead of MAC addresses, fibre channel identifies nodes with World Wide Names (WWN) also controlled by IEEE.</li>
-<li>Fibre exists behind the server. As a single network there is no need for an internet protocol equivalent.</li>
-<li>Nor does fibre channel use TCP or UDP</li>
-<li>Given, the specific use cases, there is no need for an additional abstraction of the transport layer. SCSI includes ports.</li>
-</ul>
 </div>
 </div>
 
