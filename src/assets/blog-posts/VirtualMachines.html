@@ -1,0 +1,644 @@
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="blog-view/VirtualMachines#org6d9f1db">1. Introduction</a></li>
+<li><a href="blog-view/VirtualMachines#org7a71556">2. Logical Volume Manager</a>
+<ul>
+<li><a href="blog-view/VirtualMachines#orgc4b475b">2.1. LVM Overview</a></li>
+<li><a href="blog-view/VirtualMachines#org11fddac">2.2. initramfs</a></li>
+<li><a href="blog-view/VirtualMachines#org5be8ba1">2.3. Handling a LVM swap partition</a></li>
+<li><a href="blog-view/VirtualMachines#orga3f907b">2.4. GRUB2</a></li>
+</ul>
+</li>
+<li><a href="blog-view/VirtualMachines#org3e5fc4c">3. Virtual Machines with KVM + QEMU</a>
+<ul>
+<li><a href="blog-view/VirtualMachines#orgc84e7c7">3.1. KVM and QEMU</a></li>
+<li><a href="blog-view/VirtualMachines#org13c40f2">3.2. Virtio Drivers</a></li>
+<li><a href="blog-view/VirtualMachines#orgf9316af">3.3. USB Passthrough</a></li>
+<li><a href="blog-view/VirtualMachines#org76ea464">3.4. BIOS vs UEFI for VMs</a></li>
+<li><a href="blog-view/VirtualMachines#org506ff92">3.5. GPU Passthrough with IOMMU and VFIO</a></li>
+<li><a href="blog-view/VirtualMachines#orgb86e29c">3.6. Setting up QEMU for GPU passthrough</a>
+<ul>
+<li><a href="blog-view/VirtualMachines#org44b3b83">3.6.1. A Note about Windows</a></li>
+<li><a href="blog-view/VirtualMachines#org28dd391">3.6.2. A note about Windows 11</a></li>
+</ul>
+</li>
+<li><a href="blog-view/VirtualMachines#org62207bf">3.7. VM Networking</a></li>
+</ul>
+</li>
+<li><a href="blog-view/VirtualMachines#orge181f2a">4. References</a></li>
+<li><a href="blog-view/VirtualMachines#orgd65e40c">5. Future home lab ideas</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org6d9f1db" class="outline-2">
+<h2 id="org6d9f1db"><span class="section-number-2">1.</span> Introduction</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+The main component of a computing system is the operating system. The operating system is responsible for managing and sharing computing resources amoungst the users&rsquo; applications. This simplifies the concerns of the application developer. The application developer rarely needs to consider the what hardware configurations the user may have, how to interact with that hardware or even consider how to share that hardware with the other applications the user may be running. The operating system achieves this separation of concerns by providing the applications a unified (abstracted) view of the hardware. For example, instead of an application writing to the actual physical memory addresses, the operating system will provide the application with virtual addresses. The operating system manages CPU processing, so applications developers can write their programs as if their application will be the only programs running on the system. We can think of this as the operating system providing the applications with a virtual CPU. Given these roles and examples, the operating system is also referred to as a virtual machine (VM).
+</p>
+
+<p>
+One of the biggest breakthroughs in cloud computing, was the ability to host multiple operating systems (i.e VMs) on a single system. Hosting multiple VMs greatly improved cost efficiency since companies did not need to buy new hardware when deploying a new application on a separate VM. Hardware sharing could be tailored much more efficiently to meet the business&rsquo; use cases. The technology used to host multiple VMs on shared hardware is called the &ldquo;hypervisor.&rdquo; Originally, there are two types of hypervisor. Type 1 allows the guest VM to run very close to bare metal. The second slower type has to first translate instructions from a guest VM which is then handled by the host.
+</p>
+
+<p>
+With all this in mind, I want to build by own &ldquo;home lab&rdquo; to replicate the ability to spin up multiple VMs. There are a number of ready made tools for this purpose such as VMWare&rsquo;s ESXI platform or Proxmox, but I think it is more interesting to build it from &ldquo;scratch.&rdquo; Since type 2 hypervisors are too slow to be used in production servers I will be using a type 1 hypervisor. Between Windows&rsquo; HyperV and Linux&rsquo;s KVM, I naturally opted with the latter.
+</p>
+
+<p>
+The journey begins with setting up storage, specifically for easily hosting multiple VMs. Then I&rsquo;ll look at the main focus, understanding the technology underlying and implementing virtual machines. Finally, a look VPNs for network security between our computing resources (e.g. the VMs we will be spinning up).
+</p>
+</div>
+</div>
+
+<div id="outline-container-org7a71556" class="outline-2">
+<h2 id="org7a71556"><span class="section-number-2">2.</span> Logical Volume Manager</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Operating systems need to carve out their own space on the hard disk to store their file system and programs. This &ldquo;carving out&rdquo; of disk space is known as <i>partitioning</i> the hard drive and, as anyone who has dual-booted the PC before would tell you, this is the most stressful part of the installation. When partitioning the hard drive, the sizes of the hard drive must be set a priori (i.e. known beforehand). Resizing partitions later is a tricky task, which requires migrating and deleting data. Another restriction with typical partitions is partitions cannot stretch over multiple disks. Since I want re-configurable control over my guest VM partitions I found a solution with Logical Volume Manager (LVM). LVM adds a layer of abstraction over the physical disks. Instead of multiple partitions, our drives are all contained in a single partition with type LVM. We can then use the LVM userspace program to create logical volumes out of all the LVM partitions on the disks. Again, with this layer of abstraction and the LVM userspace program, it is easy to allocate and resize space for the VMs we will be creating.
+</p>
+</div>
+
+<div id="outline-container-orgc4b475b" class="outline-3">
+<h3 id="orgc4b475b"><span class="section-number-3">2.1.</span> LVM Overview</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+There are three main structures:
+</p>
+<ul class="org-ul">
+<li>Physical volumes</li>
+<li>Volume groups</li>
+<li>Logical volumes</li>
+</ul>
+
+<p>
+Volume groups are the bridge between the physical world and the abstracted partitions we will be creating. Physical volumes (physical drivers) are assigned to volume groups and LVM partitions are created from volume groups. The typical processes for setting up LVM drives and managing LVM partitions is as follows:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">fdisk /dev/mydrive
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Create new partition table and assign it type lvm</span>
+
+pvcreate vgmain /dev/mydrive <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Create volume group vgmain and add /dev/mydrive to it</span>
+pvdisplay <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">list all physical volumes</span>
+
+lvcreate -n lvolubuntu -L 20G vgmain <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Create logical volumes from volume group</span>
+lvcreate -n lvolwindows -L 20G vgmain
+lvdisplay <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">list all logical volumes</span>
+
+vgchange -ay vgmain <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Activate logical volumes</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Assign filesystem to logical volumes</span>
+mkfs -t ntfs /dev/vgmain/lvolwindows
+mkfs.ext /dev/vgmain/lvolubuntu
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Resize paritions</span>
+lvreduce --resizefs -L -8G /dev/vgmain/lvolwindows <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">shrink lvolwindows lvm partition by 8 GB</span>
+
+lvextend -l +100%FREE /dev/vgmain/lvolubuntu <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">expand lvolubuntu lvm partition to fill rest of available space</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org11fddac" class="outline-3">
+<h3 id="org11fddac"><span class="section-number-3">2.2.</span> initramfs</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+In order to boot from an LVM partition, the LVM userspace program must be loaded. However, this userspace program is located on the LVM partition we wish to boot. This creates a chicken and the egg situation. The workaround discussed here, is to use an initramfs system. The initramfs system is a minimal filesystem that is made available to the kernel on startup. This minimal filesystem will include the necessary programs needed by the kernel before the main filesystem is loaded. There are a handful of programs which can generate an initramfs for you such as dracut. I will outline the process for creating one from scratch.
+</p>
+
+<p>
+The first step is decide what packages must be installed on the initramfs. The first is busybox which is a set of lightweight utilities which will give us some debugging control if the kernel fails to boot. Second, of course, is the LVM program. Note that to include these programs in the initramfs, these programs must be built using static libraries (i.e. the executable must have all the dependencies built in). Secondly, we will build the init script. This script will execute functionality not available to the kernel. In our use case this script will activate the LVM volumes, on which our kernel sits. The following code snippet illustrates building an initramfs.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Run the following as root</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Create initramfs file structure</span>
+<span style="color: #9A7500;">mkdir</span> --parents /root/initramfs/<span style="color: #3B6EA8;">{</span>bin,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys<span style="color: #3B6EA8;">}</span>
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Copy busybox and LVM executables to initramfs</span>
+<span style="color: #9A7500;">cp</span> --archive /bin/busybox /root/initramfs/bin/busybox
+<span style="color: #9A7500;">cp</span> --archive /sbin/lvm /usr/src/initramfs/sbin/lvm
+</pre>
+</div>
+
+<p>
+The init script is simple. First define a function which will start a busybox shell. We will call this function if something fails. Secondly, mount the necessary filesystem directories namely: /proc, /sys and /dev. Thirdly use the lvm userspace program to search for and activate LVM logical volumes. Once that is done unmount those filesystem directories and use busybox&rsquo;s switch<sub>root</sub> tool to hand over root control to the main kernel init directory.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">#</span><span style="color: #8b94a5;">!/bin/</span><span style="color: #3B6EA8;">busybox</span><span style="color: #8b94a5;"> sh</span>
+
+<span style="color: #29838D;">rescue_shell</span><span style="color: #3B6EA8;">()</span> <span style="color: #3B6EA8;">{</span>
+
+    <span style="color: #9A7500;">echo</span> <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">@</span><span style="color: #4F894C;">"</span>
+    <span style="color: #9A7500;">echo</span> <span style="color: #4F894C;">"Something went wrong. Dropping you to a shell"</span>
+
+    /bin/busybox --install -s
+    <span style="color: #3B6EA8;">exec</span> /bin/sh
+<span style="color: #3B6EA8;">}</span>
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev
+
+lvm vgscan --mknodes -P || rescue_shell <span style="color: #4F894C;">"Cannot scan volumne groups"</span>
+lvm lvchange --sysinit -a y -P vgmain/lvolhome || rescue_shell <span style="color: #4F894C;">"Some/all volume groups failed to start"</span>
+lvm lvchange --sysinit -a y -P vgmain/lvolswap || rescue_shell <span style="color: #4F894C;">"Some/all volume groups failed to start"</span>
+lvm vgscan --mknodes || rescue_shell <span style="color: #4F894C;">"Cannot create wrapper for volume group"</span>
+
+mount -o ro /dev/mapper/vgmain-lvolhome /mnt/root
+
+umount /proc
+umount /sys
+umount /dev
+
+<span style="color: #3B6EA8;">exec</span> switch_root /mnt/root /sbin/init
+</pre>
+</div>
+
+<p>
+Once built, prepare your initramfs and configure your bootloader to boot with it. The kernel source code provides a helper script to build your initramfs as a .cpio file. From there, we will compress it with gzip.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">/usr/src/linux/usr/./gen_init_cpio &lt;location_of_initramfs&gt; .. <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">use script included in kernel source code</span>
+<span style="color: #9A7500;">cd</span> .. <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Move up directory to newly created initramfs .cpio file</span>
+gzip &lt;initramfs.cpio&gt; <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">compress the initramfs</span>
+<span style="color: #9A7500;">cp</span> custom-initramfs.cpio.gz /boot <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">copy the compressed initramfs to the /boot directory</span>
+</pre>
+</div>
+
+<p>
+Next we must configure the GRUB2 bootloader to boot with the initramfs by using the configuration files available to use in the //etc/grub.d/10<sub>linux</sub> configuration file. See the following code snippet for reference.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #842879;">initrd_real</span>=
+<span style="color: #3B6EA8;">for</span> i<span style="color: #3B6EA8;"> in</span> <span style="color: #4F894C;">"initrd.img-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">"initrd-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{version}</span><span style="color: #4F894C;">.img"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initrd-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">.img.old"</span> <span style="color: #4F894C;">"initrd-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{version}</span><span style="color: #4F894C;">.gz"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initrd-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">.gz.old"</span> <span style="color: #4F894C;">"initrd-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initramfs-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{version}</span><span style="color: #4F894C;">.img"</span> <span style="color: #4F894C;">"initramfs-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">.img.old"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initrd.img-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">"initrd-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">.img"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initrd-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">"initramfs-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">.img"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initramfs-genkernel-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initramfs-genkernel-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initramfs-genkernel-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{GENKERNEL_ARCH}</span><span style="color: #4F894C;">-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"initramfs-genkernel-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{GENKERNEL_ARCH}</span><span style="color: #4F894C;">-</span><span style="color: #97365B;">$</span><span style="color: #842879;">{alt_version}</span><span style="color: #4F894C;">"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"custom-initramfs.cpio.gz"</span>; <span style="color: #3B6EA8;">do</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">&lt;---- Add the name of your initramfs here</span>
+<span style="color: #3B6EA8;">if </span><span style="color: #29838D;">test</span> -e <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">{dirname}</span><span style="color: #4F894C;">/</span><span style="color: #97365B;">$</span><span style="color: #842879;">{i}</span><span style="color: #4F894C;">"</span> ; <span style="color: #3B6EA8;">then</span>
+    <span style="color: #842879;">initrd_real</span>=<span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">{i}</span><span style="color: #4F894C;">"</span>
+    <span style="color: #3B6EA8;">break</span>
+<span style="color: #3B6EA8;">fi</span>
+<span style="color: #3B6EA8;">done</span>
+</pre>
+</div>
+
+<p>
+Finally, remember to re-generate your GRUB2 configuration.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5be8ba1" class="outline-3">
+<h3 id="org5be8ba1"><span class="section-number-3">2.3.</span> Handling LVM swap partition</h3>
+<div class="outline-text-3" id="text-2-3">
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">To view loaded swap partitions</span>
+<span style="color: #9A7500;">cat</span> /proc/swaps
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">To activate a swap partition</span>
+swapon /dev/...&lt;device&gt;
+</pre>
+</div>
+
+<p>
+I tried activating the swap partition within the initramfs but this doesn&rsquo;t work. The best solution thereafter is to use a systemd service to enable the swap partition at startup.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">[</span>Unit<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Description</span>=Load my LVM swap partition
+
+<span style="color: #3B6EA8;">[</span>Service<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">Type</span>=oneshot
+<span style="color: #842879;">ExecStart</span>=swapon /dev/...
+
+<span style="color: #3B6EA8;">[</span>Install<span style="color: #3B6EA8;">]</span>
+<span style="color: #842879;">WantedBy</span>=multi-user.target
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orga3f907b" class="outline-3">
+<h3 id="orga3f907b"><span class="section-number-3">2.4.</span> GRUB2</h3>
+<div class="outline-text-3" id="text-2-4">
+<p>
+GRUB2 is the de facto stage 2 bootloader for many Linux distributions. It has the advanced feature for booting from and loading home partitions that exist on LVM logical volumes. This, of course, bypasses the need for an initramfs however still requires some configuration from the user.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3e5fc4c" class="outline-2">
+<h2 id="org3e5fc4c"><span class="section-number-2">3.</span> Virtual Machines with KVM + QEMU</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-orgc84e7c7" class="outline-3">
+<h3 id="orgc84e7c7"><span class="section-number-3">3.1.</span> KVM and QEMU</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+The Linux kernel is a monolithic kernel. However it supports dynamically loading in kernel modules which extend the functionality of the kernel (e.g. for example loading in a device driver). One of these modules is a type 1 hypervisor called the Kernel Virtual Machine (KVM).
+</p>
+
+<p>
+QEMU is short for Quick Emulator. QEMU is a userspace program that is capable of emulating hardware through software or alternatively use KVM as a hypervisor backend to run virtualized environments. QEMU offers a lot of options when creating a VM. Options include the number of cores dedicted to the VM, the amount of memory and specifying other network and hardware device properties.
+</p>
+
+<p>
+As with a normal installation of an operating system on a new machine, when booting a new VM, we will command QEMU mount both the installation media as a cdrom and the drive to which the new OS will be installed. QEMU allows us to boot the operating system from a either an image file on our existing filesystem and partition or boot directly from a disk partition. Since, we spent a significant time on LVM in the previous section, we will be booting directly from a LVM logical volume.
+</p>
+
+<p>
+Given the number of configuration options, there are a number of front ends for QEMU which makes spinning up VMs far more simple. However, for now I want to do everything by hand.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">#</span><span style="color: #8b94a5;">! /bin/</span><span style="color: #3B6EA8;">bash</span>
+<span style="color: #3B6EA8;">exec</span> qemu-system-x86_64 -enable-kvm <span style="color: #4F894C;">\</span>
+    -cpu host <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/dev/vgmain/lvolwindows,<span style="color: #842879;">if</span>=virtio <span style="color: #4F894C;">\</span>
+    -net nic <span style="color: #4F894C;">\</span>
+    -net user,<span style="color: #842879;">hostname</span>=windowsvm <span style="color: #4F894C;">\</span>
+    -m 2G <span style="color: #4F894C;">\</span>
+    -monitor stdio <span style="color: #4F894C;">\</span>
+    -name <span style="color: #4F894C;">"Windows"</span> <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">@</span><span style="color: #4F894C;">"</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org13c40f2" class="outline-3">
+<h3 id="org13c40f2"><span class="section-number-3">3.2.</span> Virtio Drivers</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+You will notice &ldquo;virtio&rdquo; appearing frequently in the QEMU scripts. virtio is the main platform for IO virtualization. In a virtualized operating system, IO operations may perform better if IO driver are <i>paravirtualized</i> over full software virtualization. Paravirtualized drivers can leverage the host&rsquo;s (hypervisor) access to hardware decreasing latency. This write-up makes use of virtio drivers for block storage, USB peripherals, display outputs and networking.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgf9316af" class="outline-3">
+<h3 id="orgf9316af"><span class="section-number-3">3.3.</span> USB Passthrough</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+Devices connected to the host are not automatically made available to guest VMs. They are to be passed through. QEMU emulates a the USB chipset and USB devices are attached to this chipset. The latest chipset available is XHCI and supports USB1.0, USB2.0 to USB3.0. Below we see the steps for hot-swapping USB devices to the VM through QEMU&rsquo;s STDIO interface (i.e. terminal screen/prompt opened alongside the VM display). Please note passing sharing the host&rsquo;s keyboard and mouse USB devices with the VM will discussed in a later section.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">In separate terminal, get vendorid and productid</span>
+lsusb
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">In the QEMU terminal ...</span>
+device_add nec-usb-xhci,<span style="color: #842879;">id</span>=xhci
+device_add usb-host,<span style="color: #842879;">bus</span>=xhci.0,<span style="color: #842879;">vendorid</span>=0x4030,<span style="color: #842879;">productid</span>=0x6010 <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Notice the hex format</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org76ea464" class="outline-3">
+<h3 id="org76ea464"><span class="section-number-3">3.4.</span> BIOS vs UEFI for VMs</h3>
+<div class="outline-text-3" id="text-3-4">
+<p>
+QEMU really aims to emulate all aspects of physical hardware. This includes the emulating whether your VM is booting with BIOS or UEFI firmware. UEFI is the newer specification and GPU passthrough requires it. By default, QEMU boots the VMs with SeaBIOS which emulates BIOS firmware. Intel has provided a reference UEFI specification referred to TianoCore EDK II and the Open Virtual Machine (OVMF) software package is an EDK II project which enables UEFI support for VMs. OVMF is installed as any regular package. Once installed, find the OVMF<sub>CODE.fd</sub> and OVMF<sub>VARS.fd</sub> files. Mine were installed in <i>usr/share/edk2-ovmf</i>. Enable UEFI support on your VM as follows:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">qemu-system-x86_64 <span style="color: #4F894C;">\</span>
+    -enable-kvm <span style="color: #4F894C;">\</span>
+    -cpu <span style="color: #4F894C;">'host'</span> <span style="color: #4F894C;">\</span>
+    -m 4G <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">if</span>=pflash,<span style="color: #842879;">format</span>=raw,<span style="color: #842879;">readonly</span>=on,<span style="color: #842879;">file</span>=/usr/share/edk2-ovmf/OVMF_CODE.secboot.fd <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">if</span>=pflash,<span style="color: #842879;">format</span>=raw,<span style="color: #842879;">file</span>=/usr/share/edk2-ovmf/OVMF_VARS.fd <span style="color: #4F894C;">\</span>
+    -serial none <span style="color: #4F894C;">\</span>
+    -monitor stdio <span style="color: #4F894C;">\</span>
+    -vga virtio
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org506ff92" class="outline-3">
+<h3 id="org506ff92"><span class="section-number-3">3.5.</span> GPU Passthrough with IOMMU and VFIO</h3>
+<div class="outline-text-3" id="text-3-5">
+<p>
+There are instances when we would want a guest virtual machine to have exclusive access to a hardware resource. My personal use case is for my guest Windows 10 VM to have exclusive access to my GPU to play computer games. Some devices, such as the GPU, access memory directly and are hence not designed for virtualization. Consider a guest VM with DMA access through a GPU, is not aware it is a guest VM and will overwrite memory used by the host or other VMs. To address this, we can make use of IO memory management units which isolates resources into groups and translates the physical addresses of available resources with a virtual addresses which is used by the guest VM. With these isolated IOMMU groups, the guest can be assigned exclusive access to the resources within one or more groups. Guest VMs can only be assigned groups and not individual resources given how they work together with DMA. Also consider that since the guest VM is given exclusive access to an IOMMU group which has the GPU, the CPU needs to have integrated graphics for the host VM to continue to work.
+</p>
+
+<p>
+IOMMU functionality is offered at the CPU architectural level with implementations by Intel and AMD being VT-d and AMD-Vi respectively. To use IOMMU groups, the kernel must be built with the necessary IOMMU drivers. The drivers are found in Device Drivers -&gt; IOMMU Hardware support. The kernel will need to boot with the necessary command line parameters. To ensure all subsequent kernels upgrades include these parameters, please modify GRUB<sub>CMDLINE</sub><sub>LINUX</sub> variable the /etc/default/grub file. Once updated rebuild your GRUB boot configuration and reboot.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Append parameters to the linux kernel command line</span>
+<span style="color: #842879;">GRUB_CMDLINE_LINUX</span>=<span style="color: #4F894C;">"iommu=pt intel_iommu=on pcie_acs_override=downstream,multifunction"</span>
+</pre>
+</div>
+
+<p>
+To view all the devices and their assigned IOMMU group, you can run the following BASH script.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">for</span> d<span style="color: #3B6EA8;"> in</span> /sys/kernel/iommu_groups/*/devices/*; <span style="color: #3B6EA8;">do</span> <span style="color: #842879;">n</span>=$<span style="color: #3B6EA8;">{</span><span style="color: #842879;">d</span>#*/iommu_groups/*<span style="color: #3B6EA8;">}</span>; <span style="color: #842879;">n</span>=$<span style="color: #3B6EA8;">{</span><span style="color: #842879;">n</span>%%/*<span style="color: #3B6EA8;">}</span>; <span style="color: #29838D;">printf</span> <span style="color: #4F894C;">'IOMMU Group %s '</span> <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">n</span><span style="color: #4F894C;">"</span>; lspci -nns <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">{d##*/}</span><span style="color: #4F894C;">"</span>; <span style="color: #3B6EA8;">done</span>;
+</pre>
+</div>
+
+<p>
+IOMMU groups allows a guest VM to have exclusive access to a resource with direct memory access (DMA). The Virtual Function IO builds on this by providing a userspace driver to the guest VM, providing low latency and direct use of bare-metal drivers. VFIO must also be built into the kernel and is found in Device Drivers -&gt; VFIO Non-Privileged userspace driver framework. Once VFIO is compiled into the host&rsquo;s kernel, we can begin configuring the boot time kernel parameters for GPU passthrough.
+</p>
+
+<p>
+As previously mentioned, a consequence of device passthrough is that the device will not be accessible to the host VM. The goal is now to blacklist the GPU device from being loaded by the host kernel. This will be achieved by assigning the devices to the vfio-pci kernel module.
+</p>
+
+<p>
+Devices are identified by their vendor number IDs which can be obtained by the following command.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">lspci -nn <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Provides the address for all devices connected via PCI bus</span>
+</pre>
+</div>
+
+<p>
+Given the IDs provided by the command above, create a /etc/modprobe.d/vfio.conf file and assign the IDs to vfio-pci kernel module, and hence prevent the host kernel from loading these devices.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash">options vfio-pci <span style="color: #842879;">ids</span>=10de:1c02,10de:10f1
+
+softdep nouveau pre: vfio-pci
+softdep snd_hda_intel pre: vfio-pci
+
+softdep nvidia pre: vfio-pci
+softdep snd_hda_intel pre: vfio-pci
+</pre>
+</div>
+
+<p>
+Reboot and verify the host kernel is not using the GPU device with the following command.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">lspci -k
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">For the GPU vga and audio device we should see: Kernel driver in use: vfio-pci</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb86e29c" class="outline-3">
+<h3 id="orgb86e29c"><span class="section-number-3">3.6.</span> Setting up QEMU for GPU passthrough</h3>
+<div class="outline-text-3" id="text-3-6">
+<p>
+What is often overlooked in the many tutorials I worked through for GPU passthrough is how to share your host&rsquo;s keyboard and mouse with the VM which will be displayed on a different screen. I assume these tutorials make the assumption you have a separate keyboard and mouse that&rsquo;ll be passthrough using the USB passthrough steps outlined above. However, if you want to share your host&rsquo;s keyboard and mouse you can do so by sharing the devices&rsquo; evdev driver with QEMU. Run the command below and try typing or moving your mouse. You have identified the device names if the characters are printed to screen after running the command below.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">cat</span> /dev/input/by-id/&lt;device_name&gt;
+</pre>
+</div>
+
+<p>
+Finally, to pass the GPU device to the guest VM and share keyboard and mouse with the host, start QEMU with the following options. Once VM has started, you can switch keyboard and mouse input between host and VM by pressing left and right cntrl keys simultaneously.
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">exec</span> qemu-system-x86_64 -enable-kvm <span style="color: #4F894C;">\</span>
+    -nodefaults <span style="color: #4F894C;">\</span>
+    -cpu host <span style="color: #4F894C;">\</span>
+    -bios /usr/share/edk2-ovmf/OVMF_CODE.fd <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/dev/vgmain/lvolubuntu,<span style="color: #842879;">if</span>=virtio <span style="color: #4F894C;">\</span>
+    -device nec-usb-xhci,<span style="color: #842879;">id</span>=xhci <span style="color: #4F894C;">\</span>
+    -device usb-kbd <span style="color: #4F894C;">\</span>
+    -device usb-mouse <span style="color: #4F894C;">\</span>
+    -object input-linux,<span style="color: #842879;">id</span>=kbd1,<span style="color: #842879;">evdev</span>=/dev/input/by-id/usb-Cooler_Master_Technology_Inc._MasterKeys_Lite_L_Combo_Keyboard_KB_-event-kbd,<span style="color: #842879;">grab_all</span>=on,<span style="color: #842879;">repeat</span>=on  <span style="color: #4F894C;">\</span>
+    -object input-linux,<span style="color: #842879;">id</span>=mouse1,<span style="color: #842879;">evdev</span>=/dev/input/by-id/usb-Cooler_Master_Technology_Inc._MasterKeys_Lite_L_Combo_Mouse-if01-event-mouse  <span style="color: #4F894C;">\</span>
+    -device vfio-pci,<span style="color: #842879;">host</span>=01:00.0,x-vga=on,<span style="color: #842879;">multifunction</span>=on <span style="color: #4F894C;">\</span>
+    -device vfio-pci,<span style="color: #842879;">host</span>=01:00.1 <span style="color: #4F894C;">\</span>
+    -m 4G <span style="color: #4F894C;">\</span>
+    -name <span style="color: #4F894C;">"Ubuntu22"</span> <span style="color: #4F894C;">\</span>
+    -monitor stdio <span style="color: #4F894C;">\</span>
+    -nographic <span style="color: #4F894C;">\</span>
+    -vga none <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">@</span><span style="color: #4F894C;">"</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org44b3b83" class="outline-4">
+<h4 id="org44b3b83"><span class="section-number-4">3.6.1.</span> A Note about Windows</h4>
+<div class="outline-text-4" id="text-3-6-1">
+<p>
+The steps above got me to fully functioning Ubuntu VM with a dedicated graphics card. The same cannot be said for a Windows 10 or Windows 11 VM. Given GPU passthrough works on other Linux VMs I do not think there is problem with the host&rsquo;s setup, kernel or driver configuration. Instead I blame the driver within the Windows VM for not functioning as expected. Despite the VM having access to the graphics card, the setup knowing it is not running naively would refuse to work. I believe this was due to commercial reasons to NVIDIA could sell VM specific driver licenses. For this reason we need some additional parameters to trick the VM into thinking it is running natively. Note the &ldquo;-cpu&rdquo; and &ldquo;-machine&rdquo; options below. Despite these &ldquo;hacky&rdquo; attempts I have not been able to get video display through a dedicated passed through GPU.
+</p>
+
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #3B6EA8;">exec</span> qemu-system-x86_64 <span style="color: #4F894C;">\</span>
+    -nodefaults <span style="color: #4F894C;">\</span>
+    -enable-kvm <span style="color: #4F894C;">\</span>
+    -cpu <span style="color: #4F894C;">'host,kvm=off,hv_vendor_id=null,hypervisor=off'</span> <span style="color: #4F894C;">\</span>
+    -machine <span style="color: #4F894C;">'type=q35,smm=on,kernel_irqchip=on'</span> <span style="color: #4F894C;">\</span>
+    -m 4G <span style="color: #4F894C;">\</span>
+    -smp <span style="color: #842879;">cores</span>=<span style="color: #97365B; font-weight: bold;">4</span> <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/home/joash/VMs/virtio-win-0.1.229.iso,<span style="color: #842879;">media</span>=cdrom <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/home/joash/VMs/Win10_22H2_EnglishInternational_x64.iso,<span style="color: #842879;">media</span>=cdrom <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/dev/vgmain/lvolwindows,<span style="color: #842879;">if</span>=virtio <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">if</span>=pflash,<span style="color: #842879;">format</span>=raw,<span style="color: #842879;">readonly</span>=on,<span style="color: #842879;">file</span>=/usr/share/edk2-ovmf/OVMF_CODE.secboot.fd <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">if</span>=pflash,<span style="color: #842879;">format</span>=raw,<span style="color: #842879;">file</span>=/home/joash/VMs/MY_VARS.fd <span style="color: #4F894C;">\</span>
+    -device vfio-pci,<span style="color: #842879;">host</span>=01:00.0,x-vga=on,<span style="color: #842879;">multifunction</span>=on <span style="color: #4F894C;">\</span>
+    -device vfio-pci,<span style="color: #842879;">host</span>=01:00.1 <span style="color: #4F894C;">\</span>
+    -monitor stdio <span style="color: #4F894C;">\</span>
+    -net nic <span style="color: #4F894C;">\</span>
+    -net user,<span style="color: #842879;">hostname</span>=windowsvm <span style="color: #4F894C;">\</span>
+    -name <span style="color: #4F894C;">"Windows10"</span> <span style="color: #4F894C;">\</span>
+  -nographic <span style="color: #4F894C;">\</span>
+    -vga none <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">@</span><span style="color: #4F894C;">"</span>
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org28dd391" class="outline-4">
+<h4 id="org28dd391"><span class="section-number-4">3.6.2.</span> A note about Windows 11</h4>
+<div class="outline-text-4" id="text-3-6-2">
+<p>
+Windows 11 requires a BIOS which supports secure boot and a TPM device. The first of these requirements are fulfilled with OVMF software package discussed earlier. Just pass through the OVMF firmware file with &ldquo;secboot&rdquo; attached to it. Second, we need <b>swtmp</b> to emulate a TPM device, which is then simply installed via a package manager and added as a device on QEMU. Be sure to replace the &ldquo;tmp&rdquo; path with a path that will persist after rebooting.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #9A7500;">mkdir</span> /tmp/mytpm1
+swtpm socket <span style="color: #4F894C;">\</span>
+    --tpmstate <span style="color: #842879;">dir</span>=/tmp/mytpm1 <span style="color: #4F894C;">\</span>
+    --ctrl <span style="color: #842879;">type</span>=unixio,<span style="color: #842879;">path</span>=/tmp/mytpm1/swtpm-sock <span style="color: #4F894C;">\</span>
+    --tpm2 <span style="color: #4F894C;">\</span>
+    --log <span style="color: #842879;">level</span>=<span style="color: #97365B; font-weight: bold;">20</span> &amp;
+
+<span style="color: #3B6EA8;">exec</span> qemu-system-x86_64 <span style="color: #4F894C;">\</span>
+    -enable-kvm <span style="color: #4F894C;">\</span>
+    -cpu <span style="color: #4F894C;">'host,kvm=off,hv_vendor_id=null,hypervisor=off'</span> <span style="color: #4F894C;">\</span>
+    -machine <span style="color: #4F894C;">'type=q35,smm=on,kernel_irqchip=on'</span> <span style="color: #4F894C;">\</span>
+    -m 4G <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/home/joash/VMs/virtio-win-0.1.229.iso,<span style="color: #842879;">media</span>=cdrom <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/home/joash/VMs/Win11_22H2_English_x64v2.iso,<span style="color: #842879;">media</span>=cdrom <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/dev/vgmain/lvolwindows,<span style="color: #842879;">if</span>=virtio <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">if</span>=pflash,<span style="color: #842879;">format</span>=raw,<span style="color: #842879;">readonly</span>=on,<span style="color: #842879;">file</span>=/usr/share/edk2-ovmf/OVMF_CODE.secboot.fd <span style="color: #4F894C;">\</span>
+  -chardev socket,<span style="color: #842879;">id</span>=chrtpm,<span style="color: #842879;">path</span>=/tmp/mytpm1/swtpm-sock <span style="color: #4F894C;">\</span>
+  -tpmdev emulator,<span style="color: #842879;">id</span>=tpm0,<span style="color: #842879;">chardev</span>=chrtpm <span style="color: #4F894C;">\</span>
+  -device tpm-tis,<span style="color: #842879;">tpmdev</span>=tpm0 <span style="color: #4F894C;">\</span>
+    -monitor stdio <span style="color: #4F894C;">\</span>
+    -net nic <span style="color: #4F894C;">\</span>
+    -net user,<span style="color: #842879;">hostname</span>=windowsvm <span style="color: #4F894C;">\</span>
+    -name <span style="color: #4F894C;">"Windows11"</span> <span style="color: #4F894C;">\</span>
+    -vga virtio <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">@</span><span style="color: #4F894C;">"</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org62207bf" class="outline-3">
+<h3 id="org62207bf"><span class="section-number-3">3.7.</span> VM Networking</h3>
+<div class="outline-text-3" id="text-3-7">
+<p>
+Now let us consider networking possibilities with VMs. Ideally, we would traffic to and from our VMs to be isolated from the host machine and each other. Furthermore, we would like our VMs to have their own dedicated IP addresses. In this way our VMs networking will truly behave as if they were separate machines.
+</p>
+
+<p>
+For networking with physical machines we introduce a <b>switch</b> which is a layer 2 device that transfers data to the network with MAC addresses. Since our VMs do not exist as separate physical hardware, we will need to emulate the switch. The <b>iproute2</b> userspace program introduces the concept of a <b>bridge</b> which is analogous to a physical switch.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #842879;">BRIDGE</span>=<span style="color: #4F894C;">"br10"</span>
+<span style="color: #842879;">SUBNET_PREFIX</span>=<span style="color: #4F894C;">"10.10.20"</span>
+<span style="color: #842879;">HOST_IF_MAC</span>=<span style="color: #4F894C;">"aa:bb:cc:dd:ee:ff"</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">get this by running ip link show wlp3s0</span>
+
+ip link add name <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> type bridge
+ip addr add <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">SUBNET_PREFIX</span><span style="color: #4F894C;">"</span>.1/24 dev <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span>
+ip link set dev <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> address <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">HOST_IF_MAC</span><span style="color: #4F894C;">"</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">Spoof the MAC address to be the same as wireless interface</span>
+</pre>
+</div>
+
+<p>
+We will also emulate the network interfaces connected to the VMs through the use of a <b>tap</b> device. Once the tap devices have been created and connect them to the bridge.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #842879;">BRIDGE</span>=<span style="color: #4F894C;">"br10"</span>
+<span style="color: #842879;">UBUNTUVM_TAP</span>=<span style="color: #4F894C;">"tap1"</span>
+
+ip tuntap add dev <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">UBUNTUVM_TAP</span><span style="color: #4F894C;">"</span> mode tap
+ip link set dev <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">UBUNTUVM_TAP</span><span style="color: #4F894C;">"</span> master <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span>
+
+ip link set <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> up
+ip link set <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">UBUNTUVM_TAP</span><span style="color: #4F894C;">"</span> up
+</pre>
+</div>
+
+<p>
+A <b>DHCP</b> server is required to assign IP addresses to the VMs. <b>dnsmasq</b> allows us to run a lightweight DHCP server on our host machine. We will bind the DHCP server to the bridge interface created earlier. dnsmasq is configured through a /etc/dnsmasq.conf file as follows.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">/etc/dnsmasq.conf</span>
+
+<span style="color: #842879;">interface</span>=br10
+bind-interfaces
+dhcp-range=10.10.20.1,10.10.20.254,12h <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">range of IP addresses to give out for a lease of 12 hours</span>
+</pre>
+</div>
+
+<p>
+Although the VMs are now connected on their own virtual sub-network, we still need to provide internet access to them. If your host is connected to the internet through an Ethernet cable this is easy. Simply add the Ethernet interface to the bridge network and change the default ip route to go through the bridge interface. See below:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash">ip route default dev br10
+</pre>
+</div>
+
+<p>
+If your host machine is connected to the internet through a wireless interface (i.e. WiFi), then we have to address the following challenges ahead. First we cannot simply assign the wireless interface to the bridge network as we did with the tap devices. This is not supported. Instead we will use IP tables to MASQUERADE all traffic from the bridge as though they are originating from the wireless interface itself. Keep in mind iptables is a layer 3 firewall. Be sure to also include rules to allow traffic between you and your DHCP server setup earlier.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #842879;">NETIF</span>=<span style="color: #4F894C;">"wlp3s0"</span> <span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">wireless interface</span>
+<span style="color: #842879;">BRIDGE</span>=<span style="color: #4F894C;">"br10"</span>
+<span style="color: #842879;">SUBNET</span>=<span style="color: #4F894C;">"10.10.20.0/24"</span>
+
+iptables -A INPUT -i <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> -p udp -m udp --dport <span style="color: #97365B; font-weight: bold;">53</span> -j ACCEPT
+iptables -A INPUT -i <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> -p tcp -m tcp --dport <span style="color: #97365B; font-weight: bold;">53</span> -j ACCEPT
+
+iptables -A INPUT -i <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> -p udp -m udp --dport <span style="color: #97365B; font-weight: bold;">67</span> -j ACCEPT
+iptables -A INPUT -i <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">BRIDGE</span><span style="color: #4F894C;">"</span> -p tcp -m tcp --dport <span style="color: #97365B; font-weight: bold;">67</span> -j ACCEPT
+
+<span style="color: #8b94a5;"># </span><span style="color: #8b94a5;">masquerade traffic on the VMs within subnet though it originated from the bridge interface</span>
+iptables -t nat -A POSTROUTING -s <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">SUBNET</span><span style="color: #4F894C;">"</span> -o <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">NETIF</span><span style="color: #4F894C;">"</span> -j MASQUERADE
+</pre>
+</div>
+
+<p>
+The resulting script to start the VM with QEMU will then be the following:
+</p>
+<div class="org-src-container">
+<pre class="src src-bash"><span style="color: #8b94a5;">#</span><span style="color: #8b94a5;">!/bin/</span><span style="color: #3B6EA8;">bash</span>
+<span style="color: #3B6EA8;">exec</span> qemu-system-x86_64 -enable-kvm <span style="color: #4F894C;">\</span>
+    -cpu host <span style="color: #4F894C;">\</span>
+    -smp <span style="color: #842879;">cores</span>=<span style="color: #97365B; font-weight: bold;">4</span> <span style="color: #4F894C;">\</span>
+    -bios /usr/share/edk2-ovmf/OVMF_CODE.fd <span style="color: #4F894C;">\</span>
+    -drive <span style="color: #842879;">file</span>=/dev/vgmain/lvolubuntu,<span style="color: #842879;">if</span>=virtio <span style="color: #4F894C;">\</span>
+    -netdev tap,<span style="color: #842879;">id</span>=mynet0,<span style="color: #842879;">ifname</span>=tap1,<span style="color: #842879;">script</span>=no,<span style="color: #842879;">downscript</span>=no <span style="color: #4F894C;">\</span>
+    -device virtio-net,<span style="color: #842879;">netdev</span>=mynet0 <span style="color: #4F894C;">\</span>
+    -m 4G <span style="color: #4F894C;">\</span>
+    -name <span style="color: #4F894C;">"Ubuntu22"</span> <span style="color: #4F894C;">\</span>
+    -vga virtio <span style="color: #4F894C;">\</span>
+    <span style="color: #4F894C;">"</span><span style="color: #97365B;">$</span><span style="color: #842879;">@</span><span style="color: #4F894C;"> "</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge181f2a" class="outline-2">
+<h2 id="orge181f2a"><span class="section-number-2">4.</span> References</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/configuring_and_managing_logical_volumes/modifying-the-size-of-a-logical-volume_configuring-and-managing-logical-volumes">Red Hat Modifying the size of a logical volume</a></li>
+<li><a href="https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#bridge">Red Hat Developer: Introduction to Linux interfaces for virtual networking</a></li>
+<li><a href="https://www.kernel.org/doc/html/latest/driver-api/vfio.html">Kernel VFIO</a></li>
+<li><a href="https://wiki.gentoo.org/wiki/GPU_passthrough_with_libvirt_qemu_kvm">Gentoo Wiki GPU passthrough with libvirt qemu kvm</a></li>
+<li><a href="https://wiki.archlinux.org/title/PCI_passthrough_via_OVMF">PCI<sub>passthrough</sub><sub>via</sub><sub>OVMF</sub></a></li>
+<li><a href="https://clayfreeman.github.io/gpu-passthrough/">gpu-passthrough</a></li>
+<li><a href="https://mathiashueber.com/fighting-error-43-nvidia-gpu-virtual-machine/">Fighting error 43 NVIDIA GPU in Virtual Machine</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgd65e40c" class="outline-2">
+<h2 id="orgd65e40c"><span class="section-number-2">5.</span> Future home lab ideas</h2>
+<div class="outline-text-2" id="text-5">
+<ul class="org-ul">
+<li>Build a virtualized compute cluster
+<ul class="org-ul">
+<li>Shared storage amoungst VMs</li>
+</ul></li>
+<li>Media server with Plex</li>
+</ul>
+</div>
+</div>

@@ -7,6 +7,14 @@ export class BlogsService {
 
   BlogPosts: BlogPost[] = [
     {
+      id: 'VirtualMachines',
+      title: 'Towards a home computing lab with KVM and QEMU',
+      date: '08-08-2023',
+      thumbnail: 'labrador.jpg',
+      description: 'An investigation into creating Virtual machines (VM) with GNU/Linux Kernel Virtual Machine (KVM) module and QEMU',
+      keywords: ['KVM', 'QEMU', 'hypervisor', 'GNU/Linux', 'logical volume manager', 'LVM', 'iproute2', 'iptables', 'NVIDIA', 'GPU passthrough', 'networking', 'linux kernel', 'bridge', 'tap']
+    },
+    {
       id: 'Containers',
       title: 'Application sandboxes. From chroot jail to Firejail',
       date: '18-05-2023',
