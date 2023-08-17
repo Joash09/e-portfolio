@@ -1,27 +1,31 @@
 <div id="table-of-contents" role="doc-toc">
-            <h2>Table of Contents</h2>
-            <div id="text-table-of-contents" role="doc-toc">
-                <ul>
-                    <li><a href="blog-view/NetworkingOverview#orgace1696">1. Background</a></li>
-                    <li><a href="blog-view/NetworkingOverview#org94b65b9">2. Physical Layer</a></li>
-                    <li><a href="blog-view/NetworkingOverview#org9d8d5b8">3. Data Layer</a></li>
-                    <li><a href="blog-view/NetworkingOverview#org9838821">4. Network Layer</a></li>
-                    <li><a href="blog-view/NetworkingOverview#org08f4922">5. Transport Layer</a></li>
-                    <li><a href="blog-view/NetworkingOverview#org082f7d1">6. Session Layer</a></li>
-                    <li><a href="blog-view/NetworkingOverview#orgf012e3e">7. Presentation Layer</a></li>
-                    <li><a href="blog-view/NetworkingOverview#orga913eab">8. Application Layer</a></li>
-                    <li><a href="blog-view/NetworkingOverview#orge27a6ed">9. Commonly used networking terms</a>
-                        <ul>
-                            <li><a href="blog-view/NetworkingOverview#org7ad8cb7">9.1. Firewall</a></li>
-                            <li><a href="blog-view/NetworkingOverview#orga28cfd4">9.2. Proxy</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="blog-view/NetworkingOverview#orgb987e0f">11. References</a></li>
-                </ul>
-            </div>
-        </div>
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="blog-view/NetworkingOverview#org2a1ab6a">0. Background</a></li>
+<li><a href="blog-view/NetworkingOverview#org7d8cb02">1. Physical Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org56cdb07">2. Data Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org4097c08">3. Network Layer</a>
+<ul>
+<li><a href="blog-view/NetworkingOverview#orgb79a865">3.1. Public vs Private IP addresses</a></li>
+<li><a href="blog-view/NetworkingOverview#org20686f4">3.2. IPv6</a></li>
+</ul>
+</li>
+<li><a href="blog-view/NetworkingOverview#org4023371">4. Transport Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#orgee5bae5">5. Session Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org75740a1">6. Presentation Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org0181209">7. Application Layer</a></li>
+<li><a href="blog-view/NetworkingOverview#org0659668">8. Commonly used networking terms</a>
+</li>
+</ul>
+</li>
+<li><a href="blog-view/NetworkingOverview#orge927670">10. References</a></li>
+</ul>
+</div>
+</div>
 
-<h2 id="orgace1696"><span class="section-number-2">1.</span> Background</h2>
+<div id="outline-container-org2a1ab6a" class="outline-2">
+<h2 id="org2a1ab6a"><span class="section-number-2">0.</span> Background</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 At its core networking is simply relates to 2 computers communicating with each other.
@@ -37,37 +41,37 @@ To highlight the usefulness of the OSI model consider the process of sending dat
 It is vital for these two computers to agree on everything from the data structure (i.e. the order of bits) all the way to agreeing on the physical medium used to send data (e.g. copper wire).
 For complex networks, specifically the internet, in order to transmit this data we will traverse down the OSI model layers introducing more rules and information (typically through headers) dictating how to transmit the data.
 Conversely, when the recipient receives the data, it will work up from the lowest layer back to the application layer (i.e. the format in which the data was originally sent).
-By abstracting networking functionality into layers a web programmer never has to consider how the lower layers are implemented and is only concerned with the application layers.
+By abstracting networking functionality into layers a web programmer is never concerned about the implementation details of the lower layers. They are only concerned with the application layers.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org94b65b9" class="outline-2">
-<h2 id="org94b65b9"><span class="section-number-2">2.</span> Physical Layer</h2>
+<div id="outline-container-org7d8cb02" class="outline-2">
+<h2 id="org7d8cb02"><span class="section-number-2">2.</span> Physical Layer</h2>
 <div class="outline-text-2" id="text-2">
 <p>
-    The lowest layer is the physical layer. This layer refers to the communication medium over which data is sent. To the layman, fiber optics cables or twisted coaxial cables will come to mind. These mediums transmit data over light or electrical signals respectively. What is less apparent is also knowing how we represent these signals physically. In the case of an electrical signals a bit (binary digit) could be represented as a high voltage or a low voltage. Alternatively, if we use two signals, a single bit bit can be represented by the sum of those two signals. Using two signals reduces the possibility of noise corrupting the data. The physical representation of signals is referred to as <em>line coding</em> and although is not given much thought, it effects how reliable our signal is and how far it can be transmitted.
+The lowest layer is the physical layer. This layer refers to the communication medium over which data is sent. To the layman, fiber optics cables or twisted coaxial cables will come to mind. These mediums transmit data over light or electrical signals respectively. What is less apparent is also knowing how we represent these signals physically. For example, a high or low voltage or the sum of two signals can represent a bit (binary digit). A single high/low voltage is simpler to implement but using two signals reduces the possibility of noise corrupting the data. The physical representation of signals is the <i>line coding</i> of the signal and although is not given much thought, it effects how reliable our signal is and how far it is transmitted.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org9d8d5b8" class="outline-2">
-<h2 id="org9d8d5b8"><span class="section-number-2">3.</span> Data Layer</h2>
+<div id="outline-container-org56cdb07" class="outline-2">
+<h2 id="org56cdb07"><span class="section-number-2">3.</span> Data Layer</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Defines how devices create and terminate connections between each other.
 The data layer consists of the commonly known IEEE 802 standards for local area (LAN) and personal area networks.
 These are networks between your own devices only.
 Naturally, it is useful to have a standard for which different devices, built by different manufacturers for different purposes, to communicate with each other.
-The IEEE 802 standards provides this standardization for computers connecting in a local area network. The IEEE 802 set of standards is broken into groups.
+The IEEE 802 standards provides this standardization for computers connecting in a local area network. The IEEE 802 set of standards is broken up into groups.
 The popular of these standards is Ethernet defined in the 802.3 group, and wireless LAN (i.e. WiFi) which is defined in the 802.11 group.
 For interest sake, additional appended characters to the group names define versions of the standards.
 For example 802.11ac and 802.11ax defines WiFi versions 5 and 6 respectively.
 </p>
 
 <p>
-Computers communicating over a LAN all need to agree on a unique way of identifying each other on the network.
-IEEE 802 defines a Medium Access Control (MAC) number which is a unique number given by the IEEE standard and is assigned to network devices when manufactured.
+Computers communicating over a LAN will need to agree on a unique way of identifying each other on the network.
+IEEE 802 defines a Medium Access Control (MAC) number which is a unique number given by the IEEE standards when the device is manufactured.
 The computers should also agree upon the structure of the data.
 Data sent over an Ethernet network must be split into data frames (also known as packets) of a set size.
 These data frames comprise of the source and destination MAC addresses, the data itself and additional redundant data (referred to check redundant cycle [CRC]) that the receiving computer uses to ensure the integrity of the incoming data.
@@ -75,45 +79,95 @@ The physical device used to connect and transfer data in an Ethernet network is 
 </p>
 
 <p>
-Finally, it is important to note that at this layer, the medium over which data is sent is not specified, as that forms part of physical layer. An Ethernet network can send data using twisted coaxial cables, radio frequency signals or fiber optic cables. So called &ldquo;Ethernet&rdquo; cables are more accurately described as twisted pair cables with a RJ-45 port.
+Finally, it is important to note that at this layer, the medium over which data is sent is does not form part of physical layer. An Ethernet network can send data using twisted coaxial cables or fiber optic cables. So called &ldquo;Ethernet&rdquo; cables are more accurately described as twisted pair cables with a RJ-45 port.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org9838821" class="outline-2">
-<h2 id="org9838821"><span class="section-number-2">4.</span> Network Layer</h2>
+<div id="outline-container-org4097c08" class="outline-2">
+<h2 id="org4097c08"><span class="section-number-2">4.</span> Network Layer</h2>
 <div class="outline-text-2" id="text-4">
 <p>
-This layer is only interested in ensuring data sent from a source node to a destination node over <b>connected networks</b>. Networks are connected via a device called a <b>gateway</b>.
-The internet (shorted form of <i>interconnected networks</i>) is an example of this concept. Specifically, the internet is an interconnected network which speaks the Internet Protocol (IP) language.
-As an example of the IP protocol, a node in one Ethernet network cannot send data to another node in another Ethernet network with only a MAC address as identification, as the second MAC address will not exist in the first Ethernet network.
-Hence, a new type of address must be used to identify networks, called an IP address. If the destination IP address does not belong to a node in the local network, a <b>router</b> (a type of gateway device specific to connected networks using IP) will pass the data to another network by means of a forwarding table.
-To make IP address look ups more efficient, IP addresses are designed to be grouped together into ranges.
-The most significant digits of the IP address provide the most coarse control over where the packet goes. Initially, the router only needs to consider these digits.
-Gradually the least significant digits provide finer grained control as to the exact destination.
-Hence, when an IP address is setup on an Ethernet network, a <b>subnet mask</b> is also defined to quickly calculate the range of IP addresses for the other nodes on the network.
-Then if the destination IP address falls outside of the available local network addresses, the router will forward the data packet.
+This layer is only interested in ensuring data sent from a source node to a destination node over <b>connected networks</b>. Networks are connected by a device called a <b>gateway</b>.
+The internet (shorted from <i>interconnected networks</i>) is an example of this concept. Specifically, the internet is an interconnected network which speaks the Internet Protocol (IP) language.
+As an example of the IP protocol, a node in one Ethernet network cannot send data to another node in a different Ethernet network using only the MAC address as identification. The recipient MAC address does not exist in the source node&rsquo;s Ethernet network.
+To overcome this, let us introduce a new type of address to identify different networks, called an IP address. If the destination IP address does not belong to a node in the local network, a <b>router</b> (a type of gateway device specific to connected networks using IP) will pass the data to another network by means of a <b>forwarding table</b>.
 </p>
 
 <p>
-The number of bits allocated to the source and destination addresses for an IP address is significant as they directly correspond to the number of devices that can be connected on the internet. Most commonly traffic is sent with version 4 of the internet protocol (IPv4) which allocates 32 bits to the address. Today the number of devices has surpassed the capabilities of IPv4. Two solutions are currently used to overcome these limitations:
+To make IP address look ups more efficient, IP addresses are grouped together into ranges.
+The most significant digits of the IP address provide course control over where the packet goes. Initially, the router only needs to consider these digits. Once the course location of the device is known least significant digits provide the exact location of the destination node on the network. A <b>subnet mask</b> facilitates this process, since is allows us to quickly calculate the range of IP addresses that belong on the network. For example, if after applying the subnet mask to the destination IP address, the destination address is determined to fall outside the range IP addresses with in this router&rsquo;s network, the router will forward the data packet.
 </p>
-<ol class="org-ol">
-<li>A Network Address Translation (NAT) device allows us to represent a group of IP addresses with a single public address, hence decreasing the number of public IP addresses needed and allowing reuse of local and private IP addresses</li>
-<li>IPv6 iteration of the internet protocol overcomes this limitation by allocating 64 bits to define an address and it&rsquo;s adoption is undergoing.</li>
-</ol>
 
 <p>
-Bare in mind, the IP protocol does not replace the Ethernet frames discussed in the Data Layer. Data originating in a local area network must still traverse the Ethernet network as an Ethernet frame. The additional IP protocol information is included within the Ethernet&rsquo;s payload.
+Bare in mind, the IP protocol does not replace the Ethernet frames discussed in the Data Layer. Data originating in a local area network must still traverse the Ethernet network as an Ethernet frame. The additional IP protocol&rsquo;s information is included within the Ethernet&rsquo;s payload.
 This begs the question, which MAC address must the sender include in the Ethernet frame? As previously explained, it cannot be the MAC address of the destination node.
 The sender instead will include the MAC address of the router, which it obtains through an <b>Address Resolution Protocol (ARP)</b>.
-Essentially, the ARP broadcasts a data frame requesting the router&rsquo;s MAC address and the router oblidges.
+Essentially, the ARP broadcasts a data frame requesting the router&rsquo;s MAC address and the router obliges.
 </p>
+
+<p>
+The number of bits allocated to the source and destination addresses for an IP address is significant as they directly correspond to the number of devices that can be connected on the internet. Most commonly traffic is sent with version 4 of the internet protocol (IPv4) which allocates 32 bits to the address. Today the number of devices has surpassed the capabilities of IPv4. There are two solutions we will look at:
+</p>
+</div>
+
+<div id="outline-container-orgb79a865" class="outline-3">
+<h3 id="orgb79a865"><span class="section-number-3">4.1.</span> Public vs Private IP addresses</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+The first is separating public and private IP addresses. A public IP address works as described above. It is globally unique and required to access the Internet. Households will typically only have a single public IP address given to them by their Internet Service Provider (ISP). Thereafter, the household&rsquo;s many devices will then be assigned private IP addresses by the home&rsquo;s router. Private IP addresses can are not unique between different home networks. When a device with a private IP address wants to access the Internet, the router performs <b>Network Address Translation</b> (NAT) which converts the private address to a public address. NAT can be implemented through a number of different devices such as a router, firewall or server and is implemented a number of different ways.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Type</td>
+<td class="org-left">Description</td>
+</tr>
+
+<tr>
+<td class="org-left">Static NAT</td>
+<td class="org-left">There is one to one mapping of private IP addresses to public ones. The NAT simply substitutes the addresses for outgoing and incoming packets</td>
+</tr>
+
+<tr>
+<td class="org-left">Dynamic NAT</td>
+<td class="org-left">The NAT device selects an address from a pool of public addresses when translating traffic from a private IP device. The user has no control which public IP address is chosen</td>
+</tr>
+
+<tr>
+<td class="org-left">Static PAT</td>
+<td class="org-left">Similarly to NAT, PAT substitutes between the private and public IP addresses. In addition PAT also translates the port number (discussed in the next layer). This adds an additional benefit of only needing a single public IP address and differentiating traffic on the private network with port numbers. Static refers to the one to one mapping between private IP addresses and the port numbers.</td>
+</tr>
+
+<tr>
+<td class="org-left">Dynamic PAT</td>
+<td class="org-left">Similarly to dynamic NAT, the mapping between public and private IP addresses and the port number is not determined by the user. It is instead determined automatically by the NAT device</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
-<div id="outline-container-org08f4922" class="outline-2">
-<h2 id="org08f4922"><span class="section-number-2">5.</span> Transport Layer</h2>
+<div id="outline-container-org20686f4" class="outline-3">
+<h3 id="org20686f4"><span class="section-number-3">4.2.</span> IPv6</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+IPv6 iteration of the internet protocol overcomes the limitation on the number of public IP addresses we can assign by allocating 64 bits to define an IP address. Public and private IP addresses will become obsolete given the enormous number of unique addresses that can be created with 64 bits. The adoption of IPv6 is still ongoing.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4023371" class="outline-2">
+<h2 id="org4023371"><span class="section-number-2">5.</span> Transport Layer</h2>
 <div class="outline-text-2" id="text-5">
 <p>
 The transport layer is only interested in transmitting data between <b>applications</b>. Applications are the actual use cases for transmitting data over the network such as transferring files or web pages. Examples of Applications are discussed in greater detail in Applications layer.
@@ -149,8 +203,8 @@ UDP protocol is similar to TCP however prioritizes speed and isn&rsquo;t concern
 </div>
 </div>
 
-<div id="outline-container-org082f7d1" class="outline-2">
-<h2 id="org082f7d1"><span class="section-number-2">6.</span> Session Layer</h2>
+<div id="outline-container-orgee5bae5" class="outline-2">
+<h2 id="orgee5bae5"><span class="section-number-2">6.</span> Session Layer</h2>
 <div class="outline-text-2" id="text-6">
 <p>
 As previously discussed, the TCP and UDP protocols create connections to the destination node before transferring data. The session layer is responsible for managing these connections.
@@ -158,8 +212,8 @@ As previously discussed, the TCP and UDP protocols create connections to the des
 </div>
 </div>
 
-<div id="outline-container-orgf012e3e" class="outline-2">
-<h2 id="orgf012e3e"><span class="section-number-2">7.</span> Presentation Layer</h2>
+<div id="outline-container-org75740a1" class="outline-2">
+<h2 id="org75740a1"><span class="section-number-2">7.</span> Presentation Layer</h2>
 <div class="outline-text-2" id="text-7">
 <p>
 Presentation layers, as the name suggests, only considers how the data is presented on the network. This may mean encrypting/decrypting the data to hide the data from packet sniffers and bad actors; applying encoding schemes for data compression or greater data recovery; or defining how string characters data are interpreted (e.g. is a ASCII or UNICODE etc.). Please keep in mind encryption and decryption can be actually be done at any of the previous layers as well.
@@ -167,15 +221,15 @@ Presentation layers, as the name suggests, only considers how the data is presen
 </div>
 </div>
 
-<div id="outline-container-orga913eab" class="outline-2">
-<h2 id="orga913eab"><span class="section-number-2">8.</span> Application Layer</h2>
+<div id="outline-container-org0181209" class="outline-2">
+<h2 id="org0181209"><span class="section-number-2">8.</span> Application Layer</h2>
 <div class="outline-text-2" id="text-8">
 <p>
 Finally we reach the application layer that you and I interact with everyday. Networking applications speak to the different use cases we have for transmitting data over a network. As discussed in the transport layer, port numbers are reserved for the different types of applications. Remember, port numbers were introduced to support multiple simultaneous connections. Even though, a single application may have one destination port, a unique connection is defined by both the source and destination port number.
 </p>
 
 <p>
-Here are a few examples:
+Here are some examples:
 </p>
 <ul class="org-ul">
 <li>Hypertext Transfer Protocol (HTTP) we use for exchanging web pages and browsing the internet. HTTP listens on port 80.</li>
@@ -187,12 +241,12 @@ Here are a few examples:
 </div>
 </div>
 
-<div id="outline-container-orge27a6ed" class="outline-2">
-<h2 id="orge27a6ed"><span class="section-number-2">9.</span> Commonly used networking terms</h2>
+<div id="outline-container-org0659668" class="outline-2">
+<h2 id="org0659668"><span class="section-number-2">9.</span> Commonly used networking terms</h2>
 <div class="outline-text-2" id="text-9">
 </div>
-<div id="outline-container-org7ad8cb7" class="outline-3">
-<h3 id="org7ad8cb7"><span class="section-number-3">9.1.</span> Firewall</h3>
+<div id="outline-container-orgf9ca0c6" class="outline-3">
+<h3 id="orgf9ca0c6"><span class="section-number-3">9.1.</span> Firewall</h3>
 <div class="outline-text-3" id="text-9-1">
 <p>
 A firewall is simply an application or device which filters data transmitted between computers on a network.
@@ -202,16 +256,16 @@ Firewalls are configured by defining rules.
 </div>
 </div>
 
-<div id="outline-container-orga28cfd4" class="outline-3">
-<h3 id="orga28cfd4"><span class="section-number-3">9.2.</span> Proxy</h3>
+<div id="outline-container-orgce69fa9" class="outline-3">
+<h3 id="orgce69fa9"><span class="section-number-3">9.2.</span> Proxy</h3>
 <div class="outline-text-3" id="text-9-2">
 <p>
 A proxy server is server is a machine which sits between your network and the rest of the internet (Network layer). Instead of using your IP address to communicate with the rest of the network, all your data is sent and received by the proxy and its IP address. Given its strategic position in the network, it can also run the firewall for your network and apply any additional security measures before you receive or send any data.
 </p>
 </div>
 
-<div id="outline-container-org20f8500" class="outline-4">
-<h4 id="org20f8500"><span class="section-number-4">9.2.1.</span> Reverse Proxy</h4>
+<div id="outline-container-orgd6bdcac" class="outline-4">
+<h4 id="orgd6bdcac"><span class="section-number-4">9.2.1.</span> Reverse Proxy</h4>
 <div class="outline-text-4" id="text-9-2-1">
 <p>
 Your network may be made up of multiple resources. If an external users makes a request to access a specific resource on your network, a reverse proxy (specific type of proxy) will direct that request to the corresponding resource. Reverse proxies can be intelligent by applying caching rules which frees up your resources from serving commonly requested items.
@@ -221,9 +275,9 @@ Your network may be made up of multiple resources. If an external users makes a 
 </div>
 </div>
 
-<div id="outline-container-orgb987e0f" class="outline-2">
-<h2 id="orgb987e0f"><span class="section-number-2">11.</span> References</h2>
-<div class="outline-text-2" id="text-11">
+<div id="outline-container-orge927670" class="outline-2">
+<h2 id="orge927670"><span class="section-number-2">10.</span> References</h2>
+<div class="outline-text-2" id="text-10">
 <ol class="org-ol">
 <li><a href="https://en.wikipedia.org/wiki/OSI_model">OSI Model</a></li>
 <li><a href="https://www.youtube.com/watch?v=4IMc3CaMhyY">How the OSI Model Works | Network Fundamentals Part 3</a></li>
@@ -246,4 +300,5 @@ Even with an acknowledgment from the sender there is no guarantee for successful
 </p></div></div>
 
 
+</div>
 </div>
