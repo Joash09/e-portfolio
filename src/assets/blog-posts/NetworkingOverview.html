@@ -15,11 +15,10 @@
 <li><a href="blog-view/NetworkingOverview#orgee5bae5">5. Session Layer</a></li>
 <li><a href="blog-view/NetworkingOverview#org75740a1">6. Presentation Layer</a></li>
 <li><a href="blog-view/NetworkingOverview#org0181209">7. Application Layer</a></li>
-<li><a href="blog-view/NetworkingOverview#org0659668">8. Commonly used networking terms</a>
-</li>
+<li><a href="blog-view/NetworkingOverview#org0659668">8. Commonly used networking terms</a></li>
+<li><a href="blog-view/NetworkingOverview#orge927670">10. References</a></li>
 </ul>
 </li>
-<li><a href="blog-view/NetworkingOverview#orge927670">10. References</a></li>
 </ul>
 </div>
 </div>
@@ -47,7 +46,7 @@ By abstracting networking functionality into layers a web programmer is never co
 </div>
 
 <div id="outline-container-org7d8cb02" class="outline-2">
-<h2 id="org7d8cb02"><span class="section-number-2">2.</span> Physical Layer</h2>
+<h2 id="org7d8cb02"><span class="section-number-2">1.</span> Physical Layer</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 The lowest layer is the physical layer. This layer refers to the communication medium over which data is sent. To the layman, fiber optics cables or twisted coaxial cables will come to mind. These mediums transmit data over light or electrical signals respectively. What is less apparent is also knowing how we represent these signals physically. For example, a high or low voltage or the sum of two signals can represent a bit (binary digit). A single high/low voltage is simpler to implement but using two signals reduces the possibility of noise corrupting the data. The physical representation of signals is the <i>line coding</i> of the signal and although is not given much thought, it effects how reliable our signal is and how far it is transmitted.
@@ -56,7 +55,7 @@ The lowest layer is the physical layer. This layer refers to the communication m
 </div>
 
 <div id="outline-container-org56cdb07" class="outline-2">
-<h2 id="org56cdb07"><span class="section-number-2">3.</span> Data Layer</h2>
+<h2 id="org56cdb07"><span class="section-number-2">2.</span> Data Layer</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Defines how devices create and terminate connections between each other.
@@ -85,7 +84,7 @@ Finally, it is important to note that at this layer, the medium over which data 
 </div>
 
 <div id="outline-container-org4097c08" class="outline-2">
-<h2 id="org4097c08"><span class="section-number-2">4.</span> Network Layer</h2>
+<h2 id="org4097c08"><span class="section-number-2">3.</span> Network Layer</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 This layer is only interested in ensuring data sent from a source node to a destination node over <b>connected networks</b>. Networks are connected by a device called a <b>gateway</b>.
@@ -112,7 +111,7 @@ The number of bits allocated to the source and destination addresses for an IP a
 </div>
 
 <div id="outline-container-orgb79a865" class="outline-3">
-<h3 id="orgb79a865"><span class="section-number-3">4.1.</span> Public vs Private IP addresses</h3>
+<h3 id="orgb79a865"><span class="section-number-3">3.1.</span> Public vs Private IP addresses</h3>
 <div class="outline-text-3" id="text-4-1">
 <p>
 The first is separating public and private IP addresses. A public IP address works as described above. It is globally unique and required to access the Internet. Households will typically only have a single public IP address given to them by their Internet Service Provider (ISP). Thereafter, the household&rsquo;s many devices will then be assigned private IP addresses by the home&rsquo;s router. Private IP addresses can are not unique between different home networks. When a device with a private IP address wants to access the Internet, the router performs <b>Network Address Translation</b> (NAT) which converts the private address to a public address. NAT can be implemented through a number of different devices such as a router, firewall or server and is implemented a number of different ways.
@@ -157,7 +156,7 @@ The first is separating public and private IP addresses. A public IP address wor
 </div>
 
 <div id="outline-container-org20686f4" class="outline-3">
-<h3 id="org20686f4"><span class="section-number-3">4.2.</span> IPv6</h3>
+<h3 id="org20686f4"><span class="section-number-3">3.2.</span> IPv6</h3>
 <div class="outline-text-3" id="text-4-2">
 <p>
 IPv6 iteration of the internet protocol overcomes the limitation on the number of public IP addresses we can assign by allocating 64 bits to define an IP address. Public and private IP addresses will become obsolete given the enormous number of unique addresses that can be created with 64 bits. The adoption of IPv6 is still ongoing.
@@ -167,7 +166,7 @@ IPv6 iteration of the internet protocol overcomes the limitation on the number o
 </div>
 
 <div id="outline-container-org4023371" class="outline-2">
-<h2 id="org4023371"><span class="section-number-2">5.</span> Transport Layer</h2>
+<h2 id="org4023371"><span class="section-number-2">4.</span> Transport Layer</h2>
 <div class="outline-text-2" id="text-5">
 <p>
 The transport layer is only interested in transmitting data between <b>applications</b>. Applications are the actual use cases for transmitting data over the network such as transferring files or web pages. Examples of Applications are discussed in greater detail in Applications layer.
@@ -204,7 +203,7 @@ UDP protocol is similar to TCP however prioritizes speed and isn&rsquo;t concern
 </div>
 
 <div id="outline-container-orgee5bae5" class="outline-2">
-<h2 id="orgee5bae5"><span class="section-number-2">6.</span> Session Layer</h2>
+<h2 id="orgee5bae5"><span class="section-number-2">5.</span> Session Layer</h2>
 <div class="outline-text-2" id="text-6">
 <p>
 As previously discussed, the TCP and UDP protocols create connections to the destination node before transferring data. The session layer is responsible for managing these connections.
@@ -213,7 +212,7 @@ As previously discussed, the TCP and UDP protocols create connections to the des
 </div>
 
 <div id="outline-container-org75740a1" class="outline-2">
-<h2 id="org75740a1"><span class="section-number-2">7.</span> Presentation Layer</h2>
+<h2 id="org75740a1"><span class="section-number-2">6.</span> Presentation Layer</h2>
 <div class="outline-text-2" id="text-7">
 <p>
 Presentation layers, as the name suggests, only considers how the data is presented on the network. This may mean encrypting/decrypting the data to hide the data from packet sniffers and bad actors; applying encoding schemes for data compression or greater data recovery; or defining how string characters data are interpreted (e.g. is a ASCII or UNICODE etc.). Please keep in mind encryption and decryption can be actually be done at any of the previous layers as well.
@@ -222,7 +221,7 @@ Presentation layers, as the name suggests, only considers how the data is presen
 </div>
 
 <div id="outline-container-org0181209" class="outline-2">
-<h2 id="org0181209"><span class="section-number-2">8.</span> Application Layer</h2>
+<h2 id="org0181209"><span class="section-number-2">7.</span> Application Layer</h2>
 <div class="outline-text-2" id="text-8">
 <p>
 Finally we reach the application layer that you and I interact with everyday. Networking applications speak to the different use cases we have for transmitting data over a network. As discussed in the transport layer, port numbers are reserved for the different types of applications. Remember, port numbers were introduced to support multiple simultaneous connections. Even though, a single application may have one destination port, a unique connection is defined by both the source and destination port number.
@@ -242,11 +241,11 @@ Here are some examples:
 </div>
 
 <div id="outline-container-org0659668" class="outline-2">
-<h2 id="org0659668"><span class="section-number-2">9.</span> Commonly used networking terms</h2>
+<h2 id="org0659668"><span class="section-number-2">8.</span> Commonly used networking terms</h2>
 <div class="outline-text-2" id="text-9">
 </div>
 <div id="outline-container-orgf9ca0c6" class="outline-3">
-<h3 id="orgf9ca0c6"><span class="section-number-3">9.1.</span> Firewall</h3>
+<h3 id="orgf9ca0c6"><span class="section-number-3">8.1.</span> Firewall</h3>
 <div class="outline-text-3" id="text-9-1">
 <p>
 A firewall is simply an application or device which filters data transmitted between computers on a network.
@@ -257,7 +256,7 @@ Firewalls are configured by defining rules.
 </div>
 
 <div id="outline-container-orgce69fa9" class="outline-3">
-<h3 id="orgce69fa9"><span class="section-number-3">9.2.</span> Proxy</h3>
+<h3 id="orgce69fa9"><span class="section-number-3">8.2.</span> Proxy</h3>
 <div class="outline-text-3" id="text-9-2">
 <p>
 A proxy server is server is a machine which sits between your network and the rest of the internet (Network layer). Instead of using your IP address to communicate with the rest of the network, all your data is sent and received by the proxy and its IP address. Given its strategic position in the network, it can also run the firewall for your network and apply any additional security measures before you receive or send any data.
@@ -265,7 +264,7 @@ A proxy server is server is a machine which sits between your network and the re
 </div>
 
 <div id="outline-container-orgd6bdcac" class="outline-4">
-<h4 id="orgd6bdcac"><span class="section-number-4">9.2.1.</span> Reverse Proxy</h4>
+<h4 id="orgd6bdcac"><span class="section-number-4">8.2.1.</span> Reverse Proxy</h4>
 <div class="outline-text-4" id="text-9-2-1">
 <p>
 Your network may be made up of multiple resources. If an external users makes a request to access a specific resource on your network, a reverse proxy (specific type of proxy) will direct that request to the corresponding resource. Reverse proxies can be intelligent by applying caching rules which frees up your resources from serving commonly requested items.
@@ -276,7 +275,7 @@ Your network may be made up of multiple resources. If an external users makes a 
 </div>
 
 <div id="outline-container-orge927670" class="outline-2">
-<h2 id="orge927670"><span class="section-number-2">10.</span> References</h2>
+<h2 id="orge927670"><span class="section-number-2">9.</span> References</h2>
 <div class="outline-text-2" id="text-10">
 <ol class="org-ol">
 <li><a href="https://en.wikipedia.org/wiki/OSI_model">OSI Model</a></li>
